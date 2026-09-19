@@ -1,0 +1,29 @@
+{
+  "name": "@colonization-re/savegame-editor",
+  "version": "0.1.0",
+  "description": "Parser, serializer and (eventually) web editor for Colonization for Windows .SAV files",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "schema"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "schema": "tsx src/schema/generate.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "sav": "tsx src/cli.ts",
+    "check": "npm run typecheck && npm run schema -- --check && npm test"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
