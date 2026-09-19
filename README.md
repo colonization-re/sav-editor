@@ -3,8 +3,30 @@
 Read, edit and write _Colonization_ `.SAV` files. TypeScript, no runtime dependencies
 beyond a JSON Schema validator.
 
-Status: **the codec works.** Both known sample saves parse, validate against the schema, and
-re-serialize byte-identically. The browser editor is next.
+Status: **working.** Both known sample saves parse, validate against the schema, and
+re-serialize byte-identically, and the browser editor runs on top of that.
+
+## The editor
+
+```bash
+npm install
+npm run web:dev          # http://localhost:5173/index.html
+npm run web:build        # dist-web/index.html - ONE self-contained file, ~58 KB
+```
+
+The built page opens straight from `file://`. Drop a `.SAV` on it, edit, download. Nothing is
+uploaded anywhere, because there is no server to upload it to.
+
+Tabs: **Overview** (date, difficulty, who you play, game flags), **Nations** (gold, tax, bells,
+crosses, Europe prices), **Colonies** (name, owner, all sixteen warehouse stocks), **Units**,
+**Natives**, **Tribes**, **Map**, and **Raw fields**.
+
+The map draws all four planes from the save: terrain with rivers, square ownership, the
+per-nation explored map, and roads/plowing. Click a square to inspect and edit every plane's
+bits; there is a one-click *Reveal whole map*.
+
+Every panel's detail view ends in a generated field editor covering **every byte of the record**,
+including the ones nobody has identified, each labelled with how much is actually known about it.
 
 ```bash
 npm install
@@ -26,6 +48,13 @@ saves/_DECLARE.SAV  35689 bytes
     England      gold   11099  tax  19%  bells 1728  crosses 576
     France       gold      17  tax  72%  bells 722  crosses 2
     ...
+```
+
+## Command line
+
+```bash
+npm run sav -- info   saves/AUTO01.SAV
+npm run sav -- verify saves/_DECLARE.SAV
 ```
 
 ## Library

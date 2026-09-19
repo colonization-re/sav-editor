@@ -4,10 +4,15 @@
   "description": "Parser, serializer and (eventually) web editor for Colonization for Windows .SAV files",
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "schema"],
+  "files": [
+    "dist",
+    "schema"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -15,13 +20,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sav": "tsx src/cli.ts",
-    "check": "npm run typecheck && npm run schema -- --check && npm test"
+    "check": "npm run typecheck && npm run web:check && npm run schema -- --check && npm test",
+    "web:dev": "node web/build.mjs --watch",
+    "web:build": "node web/build.mjs",
+    "web:check": "tsc -p web/tsconfig.json --noEmit"
   },
   "dependencies": {
     "ajv": "^8.17.1"
   },
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.10.2",
+    "esbuild": "^0.28.2",
+    "jsdom": "^29.1.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

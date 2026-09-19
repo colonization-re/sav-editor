@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colonization savegame editor</title>
+<!--STYLE--><link rel="stylesheet" href="styles.css"><!--/STYLE-->
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="brand">Colonization <span>savegame editor</span></div>
+    <label class="btn file-btn">Open .SAV<input id="file" type="file" accept=".sav,.SAV"></label>
+    <span class="spacer"></span>
+    <button id="revert" class="btn" disabled>Revert</button>
+    <button id="json" class="btn" disabled>Export JSON</button>
+    <button id="save" class="btn primary" disabled>Download .SAV</button>
+  </div>
+  <div id="status" class="status"></div>
+
+  <div id="empty" class="empty">
+    <div>
+      <h1>Drop a <code>.SAV</code> file here</h1>
+      <p>Everything happens in this page. Your save is never uploaded anywhere &mdash; there is no server to upload it to.</p>
+      <p class="small">
+        Colonization for Windows, save version 0x49. Two sample saves are all this layout has
+        been checked against, so keep a backup.
+      </p>
+    </div>
+  </div>
+
+  <div id="main" style="display:none">
+    <div id="tabs"></div>
+    <div id="body"></div>
+  </div>
+</div>
+<!--SCRIPT--><script type="module" src="./dist/bundle.js"></script><!--/SCRIPT-->
+</body>
+</html>

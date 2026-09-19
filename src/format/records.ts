@@ -70,7 +70,7 @@ export const UNIT: RecordSpec = completeRecord({
     {
       name: "cargo",
       offset: 0x0d,
-      type: "bytes",
+      type: "u8",
       count: 10,
       confidence: "medium",
       desc: "The cargo hold, +0x0d..+0x16. HOW IT SPLITS IS CONTESTED: one reconstruction declares cargo[3] then amount[7], another a single cargo[10]. Kept as one run until the split is settled.",
@@ -151,7 +151,7 @@ export const COLONY: RecordSpec = completeRecord({
     {
       name: "jobs",
       offset: 0x20,
-      type: "bytes",
+      type: "u8",
       count: 0x20,
       confidence: "high",
       desc: "Per-colonist job, 32 slots; see JOBS. Ids below JOB_COLONIST are a building or tile reward.",
@@ -159,7 +159,7 @@ export const COLONY: RecordSpec = completeRecord({
     {
       name: "spec",
       offset: 0x40,
-      type: "bytes",
+      type: "u8",
       count: 0x20,
       confidence: "high",
       desc: "Per-colonist specialty, same id space as `jobs`.",
@@ -167,7 +167,7 @@ export const COLONY: RecordSpec = completeRecord({
     {
       name: "specnib",
       offset: 0x60,
-      type: "bytes",
+      type: "u8",
       count: 0x10,
       confidence: "medium",
       desc: "Sixteen bytes read as nibble pairs by 16 witnesses; what they hold is not established.",
@@ -175,7 +175,7 @@ export const COLONY: RecordSpec = completeRecord({
     {
       name: "slots",
       offset: 0x70,
-      type: "bytes",
+      type: "i8",
       count: 0x14,
       confidence: "high",
       desc: "Twenty tile/building work slots.",
@@ -213,14 +213,14 @@ export const COLONY: RecordSpec = completeRecord({
     {
       name: "histPop",
       offset: 0xba,
-      type: "bytes",
+      type: "u8",
       count: 4,
       confidence: "medium",
     },
     {
       name: "histBld",
       offset: 0xbe,
-      type: "bytes",
+      type: "u8",
       count: 4,
       confidence: "medium",
     },
@@ -255,7 +255,7 @@ export const NATION_REC: RecordSpec = completeRecord({
     {
       name: "recruit",
       offset: 0x02,
-      type: "bytes",
+      type: "u8",
       count: 3,
       confidence: "high",
       desc: "The three colonists waiting on the Europe docks; JOBS ids.",
@@ -279,7 +279,7 @@ export const NATION_REC: RecordSpec = completeRecord({
     {
       name: "fathers",
       offset: 0x14,
-      type: "bytes",
+      type: "u8",
       count: 2,
       confidence: "medium",
       desc: "Start of the founding-father bitset read by `nation_flag_test` -- father id IS the bit number. A BYTE field: the swap pass does not touch it, so it is not a word. How far the bitset runs past +0x15 is not established (25 fathers need 4 bytes).",
@@ -327,7 +327,7 @@ export const NATION_REC: RecordSpec = completeRecord({
     {
       name: "rel",
       offset: 0x34,
-      type: "bytes",
+      type: "u8",
       count: 4,
       confidence: "medium",
       desc: "Relations with the other European powers.",
@@ -351,7 +351,7 @@ export const NATION_REC: RecordSpec = completeRecord({
     {
       name: "price",
       offset: 0x4c,
-      type: "bytes",
+      type: "u8",
       count: 16,
       confidence: "high",
       enum: "GOODS",

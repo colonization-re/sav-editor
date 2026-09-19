@@ -1082,60 +1082,48 @@
           "description": "+0x1f | 1B | confidence: high | Colonist count."
         },
         "jobs": {
-          "type": "object",
-          "description": "+0x20 | 32B | confidence: high | Per-colonist job, 32 slots; see JOBS. Ids below JOB_COLONIST are a building or tile reward.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 32,
+          "maxItems": 32,
+          "description": "+0x20 | 32B | confidence: high | Per-colonist job, 32 slots; see JOBS. Ids below JOB_COLONIST are a building or tile reward."
         },
         "spec": {
-          "type": "object",
-          "description": "+0x40 | 32B | confidence: high | Per-colonist specialty, same id space as `jobs`.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 32,
+          "maxItems": 32,
+          "description": "+0x40 | 32B | confidence: high | Per-colonist specialty, same id space as `jobs`."
         },
         "specnib": {
-          "type": "object",
-          "description": "+0x60 | 16B | confidence: medium | Sixteen bytes read as nibble pairs by 16 witnesses; what they hold is not established.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 16,
+          "maxItems": 16,
+          "description": "+0x60 | 16B | confidence: medium | Sixteen bytes read as nibble pairs by 16 witnesses; what they hold is not established."
         },
         "slots": {
-          "type": "object",
-          "description": "+0x70 | 20B | confidence: high | Twenty tile/building work slots.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": -128,
+            "maximum": 127
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 20,
+          "maxItems": 20,
+          "description": "+0x70 | 20B | confidence: high | Twenty tile/building work slots."
         },
         "flags2": {
           "type": "object",
@@ -1205,32 +1193,26 @@
           "description": "+0x9a | 32B | confidence: high | values: GOODS | Warehouse contents, indexed by goods id. Sixteen words -- the count comes from the byte-swap pass, not from a declaration."
         },
         "histPop": {
-          "type": "object",
-          "description": "+0xba | 4B | confidence: medium",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "+0xba | 4B | confidence: medium"
         },
         "histBld": {
-          "type": "object",
-          "description": "+0xbe | 4B | confidence: medium",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "+0xbe | 4B | confidence: medium"
         },
         "bells": {
           "type": "integer",
@@ -1359,18 +1341,15 @@
           "description": "+0x0c | 1B | confidence: high"
         },
         "cargo": {
-          "type": "object",
-          "description": "+0x0d | 10B | confidence: medium | The cargo hold, +0x0d..+0x16. HOW IT SPLITS IS CONTESTED: one reconstruction declares cargo[3] then amount[7], another a single cargo[10]. Kept as one run until the split is settled.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 10,
+          "maxItems": 10,
+          "description": "+0x0d | 10B | confidence: medium | The cargo hold, +0x0d..+0x16. HOW IT SPLITS IS CONTESTED: one reconstruction declares cargo[3] then amount[7], another a single cargo[10]. Kept as one run until the split is settled."
         },
         "spec": {
           "type": "integer",
@@ -1430,18 +1409,15 @@
           "description": "+0x01 | 1B | confidence: high | Tax rate, per cent."
         },
         "recruit": {
-          "type": "object",
-          "description": "+0x02 | 3B | confidence: high | The three colonists waiting on the Europe docks; JOBS ids.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "+0x02 | 3B | confidence: high | The three colonists waiting on the Europe docks; JOBS ids."
         },
         "f05": {
           "type": "object",
@@ -1482,18 +1458,15 @@
           "description": "+0x12 | 2B | confidence: medium | The father currently being recruited; see FATHERS."
         },
         "fathers": {
-          "type": "object",
-          "description": "+0x14 | 2B | confidence: medium | Start of the founding-father bitset read by `nation_flag_test` -- father id IS the bit number. A BYTE field: the swap pass does not touch it, so it is not a word. How far the bitset runs past +0x15 is not established (25 fathers need 4 bytes).",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "+0x14 | 2B | confidence: medium | Start of the founding-father bitset read by `nation_flag_test` -- father id IS the bit number. A BYTE field: the swap pass does not touch it, so it is not a word. How far the bitset runs past +0x15 is not established (25 fathers need 4 bytes)."
         },
         "f16": {
           "type": "integer",
@@ -1570,18 +1543,15 @@
           "description": "+0x33 | 1B | confidence: medium"
         },
         "rel": {
-          "type": "object",
-          "description": "+0x34 | 4B | confidence: medium | Relations with the other European powers.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "+0x34 | 4B | confidence: medium | Relations with the other European powers."
         },
         "f38": {
           "type": "object",
@@ -1622,18 +1592,15 @@
           "description": "+0x4a | 2B | confidence: unknown | Read as `horses` by one witness."
         },
         "price": {
-          "type": "object",
-          "description": "+0x4c | 16B | confidence: high | values: GOODS | Europe market price per goods id.",
-          "properties": {
-            "$b64": {
-              "type": "string",
-              "contentEncoding": "base64"
-            }
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
           },
-          "required": [
-            "$b64"
-          ],
-          "additionalProperties": false
+          "minItems": 16,
+          "maxItems": 16,
+          "description": "+0x4c | 16B | confidence: high | values: GOODS | Europe market price per goods id."
         },
         "volume": {
           "type": "array",

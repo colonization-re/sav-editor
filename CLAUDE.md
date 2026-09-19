@@ -80,9 +80,37 @@ npm run sav -- encode out.json NEW.SAV
 - Never diff two saves on `state.uninitialisedStack`. Those four bytes are a shipped bug — stack
   garbage the saver never initialises — so two saves of the same game legitimately differ there.
 
-## Planned direction
+## The browser editor
 
-A browser editor: load a `.SAV`, edit, download. No server, no upload of anyone's save anywhere.
+`web/` is the editor: load a `.SAV`, edit, download. `npm run web:build` produces
+`dist-web/index.html`, a single self-contained file that runs from `file://`. **Keep it that
+way** — no server, no network, no analytics. People's saves stay on their machine because there
+is nowhere for them to go.
+
 Keep the core (`src/format`, `src/codec`) free of Node-only APIs so it runs unchanged in a
-browser — `src/codec/cursor.ts` already falls back from `Buffer` to `btoa`/`atob` for that reason.
-Node-only code belongs in `src/cli.ts` and `src/schema/generate.ts`.
+browser — `src/codec/cursor.ts` falls back from `Buffer` to `btoa`/`atob` for that reason.
+Node-only code belongs in `src/cli.ts`, `src/schema/generate.ts` and `web/build.mjs`.
+
+**The detail forms are generated from the `FieldSpec` tables**, not hand-written. A panel may add
+a friendlier summary on top (a colony's warehouse as a labelled grid), but never *instead* of the
+generic editor — every byte of every record stays reachable. Add a field to `records.ts` and it
+appears in the UI, typed, with its confidence and its notes.
+
+**Show unknown fields, do not hide them.** About a third of the file has no established meaning.
+Someone poking at `f0a` with the game open is how that changes, and an editor that hides what it
+does not understand cannot help with it.
+
+`test/ui.test.ts` renders every panel against both saves under jsdom, fires `change` on every
+input, and asserts the document still serializes. It has already caught one real spec bug. jsdom
+has no canvas, so the map's *drawing* is not covered — only that it runs and that its edits are
+correct. `test/map.test.ts` covers the tile codec, which the file round-trip cannot: the planes
+travel as base64, so a bad tile encoder would round-trip perfectly and still corrupt a map.
+
+### Things not offered on purpose
+
+- **Adding or deleting units and colonies.** The arrays are index-addressed: `link`/`link2` are a
+  stack chain of unit indices, and other records refer to units and settlements by index.
+  Removing an element shifts every index after it. Doing this properly means fixing up the
+  references, and until that is written it must not be offered.
+- **Record counts are read-only in the UI.** They are the array lengths; `serialize` refuses a
+  document where they disagree.

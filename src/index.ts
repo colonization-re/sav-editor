@@ -5,6 +5,7 @@ export type { ValidationResult } from './validate.js';
 export { buildSchema } from './schema/generate.js';
 export { SECTIONS, SAVE_VERSION, MAGIC } from './format/layout.js';
 export { RECORDS } from './format/records.js';
+export * from './format/map.js';
 export { dateFromTurn, turnFromDate, START_YEAR, SEASON_YEAR } from './format/calendar.js';
 export type { GameDate } from './format/calendar.js';
 export { ENUMS, GOODS, NATION, DIFFICULTY, FATHERS, TERRAIN, GAME_FLAGS } from './format/enums.js';
