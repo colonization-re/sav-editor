@@ -44,7 +44,13 @@ if (watch) {
     ...common, write: false, minify: true, outfile: 'bundle.js', sourcemap: false,
   });
   const js = outputFiles[0].text;
-  const css = readFileSync(join(HERE, 'styles.css'), 'utf8');
+  // Both sheets, in cascade order: the design system, then the app's own rules. They are
+  // inlined rather than linked because the whole point of this output is one file that
+  // opens from file:// and asks the network for nothing.
+  const css = [
+    readFileSync(join(HERE, 'vendor', 'col.css'), 'utf8'),
+    readFileSync(join(HERE, 'app.css'), 'utf8'),
+  ].join('\n');
 
   const html = readFileSync(join(HERE, 'index.html'), 'utf8')
     .replace(/<!--STYLE-->[\s\S]*?<!--\/STYLE-->/, `<style>\n${css}\n</style>`)

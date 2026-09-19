@@ -11,7 +11,7 @@ re-serialize byte-identically, and the browser editor runs on top of that.
 ```bash
 npm install
 npm run web:dev          # http://localhost:5173/index.html
-npm run web:build        # dist-web/index.html - ONE self-contained file, ~58 KB
+npm run web:build        # dist-web/index.html - ONE self-contained file, ~89 KB
 ```
 
 The built page opens straight from `file://`. Drop a `.SAV` on it, edit, download. Nothing is
@@ -27,6 +27,13 @@ bits; there is a one-click *Reveal whole map*.
 
 Every panel's detail view ends in a generated field editor covering **every byte of the record**,
 including the ones nobody has identified, each labelled with how much is actually known about it.
+
+It is styled with [col.css](https://github.com/colonization-re/web-ui), the project's shared
+design system, pinned to a release in `web/vendor/` and inlined at build time so the page
+still asks the network for nothing. `npm run vendor:css -- v1.2.0` bumps it, checksum
+verified. It follows the system theme and defaults to dark.
+[docs/design-system-gaps.md](docs/design-system-gaps.md) lists the twelve things the editor
+needed that the design system does not have yet, and what each is used for.
 
 ```bash
 npm install

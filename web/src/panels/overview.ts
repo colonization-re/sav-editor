@@ -12,13 +12,13 @@ export function overviewPanel(): HTMLElement {
   const g = doc.globals as Record<string, number>;
   const touch = () => store.touch();
 
-  const root = h('div', { class: 'panel' });
+  const root = h('div', { class: 'sav-panel' });
 
-  root.appendChild(h('div', { class: 'cards' },
-    stat('File', save.name, `${save.original.length.toLocaleString()} bytes`),
-    stat('Version', `0x${doc.header.version.toString(16)}`, 'the only version this layout is known for'),
-    stat('Map', `${doc.header.mapWidth} x ${doc.header.mapHeight}`, `${(doc.header.mapWidth * doc.header.mapHeight).toLocaleString()} tiles per plane`),
-    stat('Records', `${doc.colonies.length} / ${doc.units.length} / ${doc.settlements.length}`, 'colonies / units / native settlements'),
+  root.appendChild(h('div', { class: 'col-tiles' },
+    stat('File', save.name, true, `${save.original.length.toLocaleString()} bytes`),
+    stat('Version', `0x${doc.header.version.toString(16)}`, false, 'the only version this layout is known for'),
+    stat('Map', `${doc.header.mapWidth} x ${doc.header.mapHeight}`, false, `${(doc.header.mapWidth * doc.header.mapHeight).toLocaleString()} tiles per plane`),
+    stat('Records', `${doc.colonies.length} / ${doc.units.length} / ${doc.settlements.length}`, false, 'colonies / units / native settlements'),
   ));
 
   /* ---- the date ------------------------------------------------------------------
@@ -26,17 +26,18 @@ export function overviewPanel(): HTMLElement {
    * step itself (advance_turn: one turn a year to 1600, two after). Editing one without
    * the others makes a save the game loads and then displays inconsistently, so this
    * writes all three from a single control. */
-  const dateOut = h('span', { class: 'date-now' });
+  const dateOut = h('span', { class: 'col-mono sav-ok' });
   const redraw = () => {
     const d = dateFromTurn(g.turnCounter!);
     const agrees = d.year === g.year && d.season === g.season;
     dateOut.textContent = `turn ${g.turnCounter} = ${d.year} ${d.season === 0 ? 'spring' : 'autumn'}`;
-    dateOut.className = `date-now${agrees ? '' : ' warn'}`;
+    dateOut.className = `col-mono ${agrees ? 'sav-ok' : 'sav-warn'}`;
     if (!agrees) dateOut.textContent += `  (file says year ${g.year}, season ${g.season})`;
   };
 
   const turn = h('input', {
-    type: 'number', class: 'f-num', min: 0, max: 65535, value: String(g.turnCounter),
+    type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+    min: 0, max: 65535, value: String(g.turnCounter),
     onchange: () => {
       const t = Math.max(0, Math.round(Number(turn.value) || 0));
       const d = dateFromTurn(t);
@@ -48,22 +49,22 @@ export function overviewPanel(): HTMLElement {
   redraw();
 
   root.appendChild(section('Date',
-    h('p', { class: 'note' },
+    h('p', { class: 'col-hint' },
       'The save stores year, season and turn as three separate words. This control writes all ',
       'three together, the way ', h('code', {}, 'advance_turn'), ' does: one turn per year until ',
       '1600, two per year after.'),
-    h('div', { class: 'row' }, h('label', {}, 'Turn'), turn, dateOut),
+    h('div', { class: 'col-row' }, h('span', { class: 'sav-label' }, 'Turn'), turn, dateOut),
   ));
 
   root.appendChild(section('Game',
-    h('div', { class: 'row' },
-      h('label', {}, 'You play'),
+    h('div', { class: 'col-row' },
+      h('span', { class: 'sav-label' }, 'You play'),
       picker(NATION, g.playerNation!, (v) => { g.playerNation = v; touch(); }),
-      h('label', {}, 'Difficulty'),
+      h('span', { class: 'sav-label' }, 'Difficulty'),
       picker(DIFFICULTY, g.difficulty!, (v) => { g.difficulty = v; touch(); }),
     ),
-    h('div', { class: 'row wrap' }, ...Object.entries(GAME_FLAGS).map(([name, mask]) =>
-      h('label', { class: 'chk' },
+    h('div', { class: 'col-row' }, ...Object.entries(GAME_FLAGS).map(([name, mask]) =>
+      h('label', { class: 'col-check' },
         h('input', {
           type: 'checkbox', checked: (g.gameFlags! & mask) !== 0,
           onchange: (e: Event) => {
@@ -72,15 +73,15 @@ export function overviewPanel(): HTMLElement {
             touch();
           },
         }),
-        name, h('span', { class: 'f-off' }, `0x${mask.toString(16)}`)))),
-    h('p', { class: 'note' },
+        h('span', {}, name, ' ', h('span', { class: 'sav-meta' }, `0x${mask.toString(16)}`))))),
+    h('p', { class: 'col-hint' },
       'Only the bits col-win-re has named are shown. The word is masked with several others ',
       'that nothing establishes the meaning of; edit those in the full field list below.'),
   ));
 
-  const full = h('details', { class: 'more' },
+  const full = h('details', { class: 'sav-disclosure' },
     h('summary', {}, 'All 142 bytes of the globals block'),
-    h('p', { class: 'note' },
+    h('p', { class: 'col-hint' },
       'A raw dump of SEG20:0x7782, so every global the reconstruction has named in that ',
       'range is a save field for free. Record counts are read-only here: changing one ',
       'without adding or removing the records would make the file unreadable.'),
@@ -93,19 +94,21 @@ export function overviewPanel(): HTMLElement {
   return root;
 }
 
-function stat(k: string, v: string, note: string): HTMLElement {
-  return h('div', { class: 'card' },
-    h('div', { class: 'card-k' }, k),
-    h('div', { class: 'card-v' }, v),
-    h('div', { class: 'card-n' }, note));
+/** `text` sizes the value for a file name rather than a figure. */
+function stat(k: string, v: string, text: boolean, note: string): HTMLElement {
+  return h('div', { class: 'col-tile' },
+    h('div', { class: 'col-tile-k' }, k),
+    h('div', { class: `col-tile-v${text ? ' sav-tile-v--text' : ''}` }, v),
+    h('div', { class: 'col-tile-d' }, note));
 }
 
 export function section(title: string, ...body: (Node | null)[]): HTMLElement {
-  return h('section', { class: 'sec' }, h('h2', {}, title), ...body.filter(Boolean) as Node[]);
+  return h('section', { class: 'col-card sav-sec' },
+    h('h2', { class: 'col-eyebrow' }, title), ...body.filter(Boolean) as Node[]);
 }
 
 export function picker(table: Readonly<Record<number, string>>, value: number, set: (v: number) => void): HTMLSelectElement {
-  const sel = h('select', { class: 'f-select', onchange: () => set(Number(sel.value)) },
+  const sel = h('select', { class: 'col-select sav-select--auto', onchange: () => set(Number(sel.value)) },
     ...Object.entries(table).map(([k, name]) =>
       h('option', { value: k, selected: Number(k) === value }, `${k} - ${name}`)));
   if (!(value in table)) sel.appendChild(h('option', { value: String(value), selected: true }, `${value} - (not in table)`));

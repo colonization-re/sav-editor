@@ -34,8 +34,8 @@ export function mapPanel(): HTMLElement {
   let sel: { x: number; y: number } | undefined;
   let scale = 12;
 
-  const canvas = h('canvas', { class: 'map-canvas' });
-  const info = h('div', { class: 'map-info' });
+  const canvas = h('canvas', { class: 'col-art sav-map-canvas' });
+  const info = h('div', {});
 
   const draw = () => {
     canvas.width = W * scale;
@@ -99,18 +99,19 @@ export function mapPanel(): HTMLElement {
   const renderInfo = () => {
     clear(info);
     if (!sel) {
-      info.appendChild(h('p', { class: 'note' }, 'Click a square to inspect and edit it.'));
+      info.appendChild(h('p', { class: 'col-hint' }, 'Click a square to inspect and edit it.'));
       return;
     }
     const { x, y } = sel;
     const i = y * W + x;
     const t = decodeTerrain(planes[0][i]!);
 
-    info.appendChild(h('h3', {}, `Square ${x}, ${y}`, h('span', { class: 'f-off' }, `index ${i}`)));
+    info.appendChild(h('h3', { class: 'col-row' }, `Square ${x}, ${y}`,
+      h('span', { class: 'sav-meta' }, `index ${i}`)));
 
     // ---- plane 0
     const terr = h('select', {
-      class: 'f-select',
+      class: 'col-select sav-select--auto',
       onchange: () => {
         const base = Number(terr.value);
         // Hills and mountains are a BIT, not an id: 27 and 28 are never stored in the
@@ -125,43 +126,43 @@ export function mapPanel(): HTMLElement {
       h('option', { value: k, selected: Number(k) === t.id }, `${k} - ${name}`)));
 
     const flag = (label: string, on: boolean, set: (v: boolean) => void) =>
-      h('label', { class: 'chk' },
+      h('label', { class: 'col-check' },
         h('input', {
           type: 'checkbox', checked: on,
           onchange: (e: Event) => { set((e.target as HTMLInputElement).checked); commit(); draw(); renderInfo(); },
-        }), label);
+        }), h('span', {}, label));
 
     info.appendChild(section(`Terrain - ${terrainName(t)}`,
-      h('div', { class: 'row wrap' }, terr,
+      h('div', { class: 'col-row' }, terr,
         flag('River', t.river, (v) => { planes[0][i] = encodeTerrain({ ...t, river: v }); }),
         t.river ? flag('Major', t.majorRiver, (v) => { planes[0][i] = encodeTerrain({ ...t, majorRiver: v }); }) : null,
         t.hilly ? flag('Mountains', t.mountains, (v) => { planes[0][i] = encodeTerrain({ ...t, mountains: v }); }) : null,
       ),
-      h('p', { class: 'note' }, `plane 0 byte ${hex(planes[0][i]!)}`)));
+      h('p', { class: 'col-hint' }, `plane 0 byte ${hex(planes[0][i]!)}`)));
 
     // ---- plane 1
     const b1 = planes[1][i]!;
     info.appendChild(section('Features (plane 1)',
-      h('div', { class: 'row wrap' }, ...(Object.keys(MAP1) as Array<keyof typeof MAP1>).map((k) =>
+      h('div', { class: 'col-row' }, ...(Object.keys(MAP1) as Array<keyof typeof MAP1>).map((k) =>
         flag(MAP1_LABELS[k], (b1 & MAP1[k]) !== 0, (v) => {
           planes[1][i] = v ? planes[1][i]! | MAP1[k] : planes[1][i]! & ~MAP1[k] & 0xff;
         }))),
-      h('p', { class: 'note' }, `plane 1 byte ${hex(b1)}`)));
+      h('p', { class: 'col-hint' }, `plane 1 byte ${hex(b1)}`)));
 
     // ---- plane 2
     info.appendChild(section('Owner (plane 2)',
-      h('div', { class: 'row wrap' },
+      h('div', { class: 'col-row' },
         picker({ ...NATION, 15: '(none)' }, squareNation(planes[2][i]!) < 0 ? 15 : squareNation(planes[2][i]!),
           (v) => { planes[2][i] = setSquareNation(planes[2][i]!, v === 15 ? -1 : v); commit(); draw(); renderInfo(); })),
-      h('p', { class: 'note' },
+      h('p', { class: 'col-hint' },
         `plane 2 byte ${hex(planes[2][i]!)}. Only the HIGH nibble is established as a nation index; `,
         'the low nibble is a separate field with no established reading and is left alone.')));
 
     // ---- plane 3
     info.appendChild(section('Explored by (plane 3)',
-      h('div', { class: 'row wrap' }, ...[0, 1, 2, 3].map((n) =>
+      h('div', { class: 'col-row' }, ...[0, 1, 2, 3].map((n) =>
         flag(NATION[n]!, exploredBy(planes[3][i]!, n), (v) => { planes[3][i] = setExploredBy(planes[3][i]!, n, v); }))),
-      h('p', { class: 'note' }, `plane 3 byte ${hex(planes[3][i]!)}`)));
+      h('p', { class: 'col-hint' }, `plane 3 byte ${hex(planes[3][i]!)}`)));
   };
 
   canvas.addEventListener('click', (e) => {
@@ -173,13 +174,18 @@ export function mapPanel(): HTMLElement {
     draw(); renderInfo();
   });
 
-  const viewBtns = h('div', { class: 'seg' }, ...(['terrain', 'owner', 'explored', 'features'] as View[]).map((v) =>
+  const viewBtns = h('div', { class: 'col-segmented' }, ...(['terrain', 'owner', 'explored', 'features'] as View[]).map((v) =>
     h('button', {
-      class: `seg-b${v === view ? ' on' : ''}`,
+      class: v === view ? 'is-active' : '',
+      'aria-selected': String(v === view),
       onclick: (e: Event) => {
         view = v;
-        for (const b of Array.from(viewBtns.children)) b.classList.remove('on');
-        (e.target as HTMLElement).classList.add('on');
+        for (const b of Array.from(viewBtns.children)) {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-selected', 'false');
+        }
+        (e.target as HTMLElement).classList.add('is-active');
+        (e.target as HTMLElement).setAttribute('aria-selected', 'true');
         nationSel.style.display = v === 'explored' ? '' : 'none';
         draw();
       },
@@ -189,14 +195,14 @@ export function mapPanel(): HTMLElement {
   nationSel.style.display = 'none';
 
   const zoom = h('input', {
-    type: 'range', min: 4, max: 20, step: 1, value: String(scale),
+    type: 'range', class: 'sav-range', min: 4, max: 20, step: 1, value: String(scale),
     oninput: () => { scale = Number(zoom.value); draw(); },
   });
 
   /* The reveal-map action. reveal_around_colony is what the game uses; this is the same
    * bit, set everywhere at once. It is the single most-requested save edit there is. */
   const reveal = h('button', {
-    class: 'btn',
+    class: 'col-btn col-btn--outline col-btn--sm',
     onclick: () => {
       const n = exploredNation;
       if (!confirm(`Mark every square explored by ${NATION[n]}? This sets one bit per square in plane 3.`)) return;
@@ -208,12 +214,12 @@ export function mapPanel(): HTMLElement {
   draw();
   renderInfo();
 
-  return h('div', { class: 'panel map-panel' },
-    h('div', { class: 'map-bar' }, viewBtns, nationSel, h('span', { class: 'spacer' }),
-      h('label', { class: 'zoom' }, 'zoom', zoom), reveal),
-    h('div', { class: 'map-split' },
-      h('div', { class: 'map-wrap' }, canvas),
-      h('div', { class: 'map-side' }, info)),
+  return h('div', { class: 'sav-panel sav-panel--full sav-map sav-viewport' },
+    h('div', { class: 'sav-map-bar' }, viewBtns, nationSel, h('span', { class: 'col-push' }),
+      h('label', { class: 'col-row sav-label' }, 'zoom', zoom), reveal),
+    h('div', { class: 'sav-map-split' },
+      h('div', { class: 'sav-map-wrap' }, canvas),
+      h('div', { class: 'sav-map-side' }, info)),
   );
 }
 

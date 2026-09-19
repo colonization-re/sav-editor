@@ -34,11 +34,18 @@ const CONF_TITLE: Record<Confidence, string> = {
   unknown: 'Offset and width only. The name is just its offset.',
 };
 
+/** high reads as established, medium as provisional; unknown stays the neutral badge. */
+const CONF_CLASS: Record<Confidence, string> = {
+  high: 'col-badge col-badge--ok',
+  medium: 'col-badge col-badge--warn',
+  unknown: 'col-badge',
+};
+
 function label(f: FieldSpec): HTMLElement {
-  return h('div', { class: 'f-label' },
-    h('span', { class: 'f-name' }, f.name),
-    h('span', { class: `f-conf f-conf-${f.confidence}`, title: CONF_TITLE[f.confidence] }, f.confidence),
-    h('span', { class: 'f-off', title: `${fieldSize(f)} byte(s) at this offset in the record` }, `+${hex(f.offset)}`),
+  return h('div', { class: 'sav-field-label' },
+    h('span', { class: 'sav-field-name' }, f.name),
+    h('span', { class: CONF_CLASS[f.confidence], title: CONF_TITLE[f.confidence] }, f.confidence),
+    h('span', { class: 'sav-meta', title: `${fieldSize(f)} byte(s) at this offset in the record` }, `+${hex(f.offset)}`),
   );
 }
 
@@ -51,10 +58,10 @@ export function fieldRow(f: FieldSpec, rec: RecordValue, o: FieldOptions): HTMLE
     : f.count !== undefined ? arrayInput(f, rec, o, ro)
     : scalarInput(f, rec, o, ro);
 
-  return h('div', { class: `f-row${f.confidence === 'unknown' ? ' f-unknown' : ''}` },
+  return h('div', { class: `sav-field${f.confidence === 'unknown' ? ' sav-field--unknown' : ''}` },
     label(f),
-    h('div', { class: 'f-body' }, body),
-    f.desc ? h('div', { class: 'f-desc' }, f.desc) : null,
+    h('div', {}, body),
+    f.desc ? h('div', { class: 'sav-field-desc' }, f.desc) : null,
   );
 }
 
@@ -66,7 +73,7 @@ function scalarInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolea
     // A select, plus a number box -- the value may legitimately fall outside the table,
     // and an editor that refuses to show such a save is worse than one that shows a number.
     const sel = h('select', {
-      class: 'f-select',
+      class: 'col-select sav-select--auto',
       onchange: () => { rec[f.name] = Number(sel.value); num.value = sel.value; o.onChange(); },
     }, ...Object.entries(table).map(([k, name]) =>
       h('option', { value: k, selected: Number(k) === value }, `${k} - ${name}`)));
@@ -74,7 +81,7 @@ function scalarInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolea
       sel.appendChild(h('option', { value: String(value), selected: true }, `${value} - (not in table)`));
     }
     const num = numberBox(f, rec, o, ro, () => { sel.value = String(rec[f.name]); });
-    return h('div', { class: 'f-pair' }, sel, num);
+    return h('div', { class: 'col-row' }, sel, num);
   }
   return numberBox(f, rec, o, ro);
 }
@@ -82,7 +89,8 @@ function scalarInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolea
 function numberBox(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean, after?: () => void): HTMLInputElement {
   const [min, max] = RANGE[f.type] ?? [0, 255];
   const el = h('input', {
-    type: 'number', class: 'f-num', min, max, step: 1, disabled: ro,
+    type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+    min, max, step: 1, disabled: ro,
     value: String(rec[f.name] ?? 0),
     onchange: () => {
       const v = Math.round(Number(el.value));
@@ -99,11 +107,11 @@ function numberBox(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean,
 function charInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean): HTMLElement {
   const width = fieldSize(f);
   const el = h('input', {
-    type: 'text', class: 'f-text', maxLength: width, disabled: ro,
+    type: 'text', class: 'col-input sav-input--sm sav-input--text', maxLength: width, disabled: ro,
     value: String(rec[f.name] ?? ''),
     onchange: () => { rec[f.name] = el.value; o.onChange(); },
   });
-  return h('div', { class: 'f-pair' }, el, h('span', { class: 'f-hint' }, `max ${width} chars`));
+  return h('div', { class: 'col-row' }, el, h('span', { class: 'col-hint' }, `max ${width} chars`));
 }
 
 function arrayInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean): HTMLElement {
@@ -111,10 +119,11 @@ function arrayInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean
   const table = f.enum ? ENUMS[f.enum] : undefined;
   const [min, max] = RANGE[f.type] ?? [0, 255];
 
-  const grid = h('div', { class: 'f-grid' });
+  const grid = h('div', { class: 'sav-cells' });
   arr.forEach((v, i) => {
     const input = h('input', {
-      type: 'number', class: 'f-num f-num-sm', min, max, step: 1, disabled: ro, value: String(v),
+      type: 'number', class: 'col-input col-input--mono sav-input--xs',
+      min, max, step: 1, disabled: ro, value: String(v),
       onchange: () => {
         const n = Math.round(Number(input.value));
         arr[i] = Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : 0;
@@ -122,8 +131,8 @@ function arrayInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean
         o.onChange();
       },
     });
-    grid.appendChild(h('label', { class: 'f-cell' },
-      h('span', { class: 'f-cell-label' }, table?.[i] ?? String(i)), input));
+    grid.appendChild(h('label', { class: 'sav-cell' },
+      h('span', {}, table?.[i] ?? String(i)), input));
   });
   return grid;
 }
@@ -137,9 +146,9 @@ function bytesInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean
   const get = () => [...fromB64((rec[f.name] as { $b64: string }).$b64)]
     .map((b) => b.toString(16).padStart(2, '0')).join(' ');
 
-  const err = h('span', { class: 'f-err' });
+  const err = h('span', { class: 'col-hint col-hint--error' });
   const el = h('textarea', {
-    class: 'f-hex', rows: Math.min(6, Math.ceil(width / 16)), disabled: ro, spellcheck: false,
+    class: 'col-textarea col-input--mono sav-hex', rows: Math.min(6, Math.ceil(width / 16)), disabled: ro, spellcheck: false,
     value: get(),
     onchange: () => {
       const parts = el.value.trim().split(/[\s,]+/).filter(Boolean);
@@ -167,7 +176,7 @@ function bytesInput(f: FieldSpec, rec: RecordValue, o: FieldOptions, ro: boolean
 }
 
 export function recordEditor(spec: RecordSpec, rec: RecordValue, o: FieldOptions): HTMLElement {
-  const el = h('div', { class: 'rec' });
+  const el = h('div', { class: 'sav-fields' });
   for (const f of spec.fields) el.appendChild(fieldRow(f, rec, o));
   return el;
 }

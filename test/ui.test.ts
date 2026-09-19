@@ -57,7 +57,7 @@ describe.each(['AUTO01.SAV', '_DECLARE.SAV'])('panels against %s', (file) => {
       // A panel with no inputs at all is a panel that silently rendered nothing.
       const controls = el.querySelectorAll('input, select, textarea, button');
       expect(controls.length, `${name} has no controls`).toBeGreaterThan(0);
-      expect(el.querySelector('.f-err')?.textContent ?? '', `${name} rendered an error`).toBe('');
+      expect(el.querySelector('.col-hint--error')?.textContent ?? '', `${name} rendered an error`).toBe('');
     }
   });
 
@@ -65,13 +65,13 @@ describe.each(['AUTO01.SAV', '_DECLARE.SAV'])('panels against %s', (file) => {
     const { colonies, units, nations } = await panels();
     const doc = store.save!.doc;
     if (doc.colonies.length > 0) {
-      const names = [...colonies().querySelectorAll('.f-name')].map((e) => e.textContent);
+      const names = [...colonies().querySelectorAll('.sav-field-name')].map((e) => e.textContent);
       // Unknown fields are shown, not hidden: that is the point of the panel.
       expect(names).toContain('bells');
       expect(names).toContain('f1d');
     }
-    expect([...units().querySelectorAll('.f-name')].map((e) => e.textContent)).toContain('cargoCount');
-    expect([...nations().querySelectorAll('.f-name')].map((e) => e.textContent)).toContain('gold');
+    expect([...units().querySelectorAll('.sav-field-name')].map((e) => e.textContent)).toContain('cargoCount');
+    expect([...nations().querySelectorAll('.sav-field-name')].map((e) => e.textContent)).toContain('gold');
   });
 
   it('survives driving every input, and still serializes', async () => {
@@ -97,7 +97,7 @@ describe('editing through the UI', () => {
   it('the date control writes year, season and turn together', async () => {
     const { overview } = await panels();
     const el = overview();
-    const turn = el.querySelector<HTMLInputElement>('.row .f-num')!;
+    const turn = el.querySelector<HTMLInputElement>('.col-row input[type="number"]')!;
     turn.value = '250';
     turn.dispatchEvent(new Event('change'));
 
@@ -113,7 +113,7 @@ describe('editing through the UI', () => {
     const { units } = await panels();
     const u = store.save!.doc.units[0] as Record<string, number>;
     u.flags = 0x25; // high nibble 2, nation 5
-    const sel = units().querySelector<HTMLSelectElement>('.sec select')!;
+    const sel = units().querySelector<HTMLSelectElement>('.sav-sec select')!;
     sel.value = '3';
     sel.dispatchEvent(new Event('change'));
     expect(store.save!.doc.units[0]!.flags).toBe(0x23);
@@ -123,11 +123,11 @@ describe('editing through the UI', () => {
     const { raw } = await panels();
     const el = raw();
     document.body.appendChild(el);
-    const box = el.querySelector<HTMLTextAreaElement>('.f-hex')!;
+    const box = el.querySelector<HTMLTextAreaElement>('.sav-hex')!;
     const original = box.value;
     box.value = 'ff ff';
     box.dispatchEvent(new Event('change'));
-    expect(el.querySelector('.f-err')!.textContent).toMatch(/need exactly/);
+    expect(el.querySelector('.col-hint--error')!.textContent).toMatch(/need exactly/);
     expect(box.value).toBe(original);
     expect(serialize(store.save!.doc).length).toBe(store.save!.original.length);
     el.remove();

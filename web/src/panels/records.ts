@@ -20,25 +20,27 @@ export function coloniesPanel(): HTMLElement {
       const stock = c.stock as number[];
       return h('div', {},
         section('Colony',
-          h('div', { class: 'row wrap' },
-            h('label', {}, 'Name'),
+          h('div', { class: 'col-row' },
+            h('span', { class: 'sav-label' }, 'Name'),
             h('input', {
-              type: 'text', class: 'f-text', maxLength: 24, value: String(c.name),
+              type: 'text', class: 'col-input sav-input--sm sav-input--text',
+              maxLength: 24, value: String(c.name),
               onchange: (e: Event) => { c.name = (e.target as HTMLInputElement).value; store.touch(); redraw(); },
             }),
-            h('label', {}, 'Owner'),
+            h('span', { class: 'sav-label' }, 'Owner'),
             picker(NATION, c.nation as number, (v) => { c.nation = v; store.touch(); redraw(); }),
-            h('label', {}, 'Population'),
-            h('span', { class: 'ro' }, String(c.pop)),
-            h('label', {}, 'At'),
-            h('span', { class: 'ro' }, `${c.x}, ${c.y}`),
+            h('span', { class: 'sav-label' }, 'Population'),
+            h('span', { class: 'col-chip' }, String(c.pop)),
+            h('span', { class: 'sav-label' }, 'At'),
+            h('span', { class: 'col-chip' }, `${c.x}, ${c.y}`),
           )),
         section('Warehouse',
-          h('div', { class: 'goods' }, ...stock.map((v, i) =>
-            h('label', { class: 'good' },
+          h('div', { class: 'sav-cells' }, ...stock.map((v, i) =>
+            h('label', { class: 'sav-cell' },
               h('span', {}, GOODS[i] ?? String(i)),
               h('input', {
-                type: 'number', class: 'f-num f-num-sm', min: 0, max: 65535, value: String(v),
+                type: 'number', class: 'col-input col-input--mono sav-input--xs',
+                min: 0, max: 65535, value: String(v),
                 onchange: (e: Event) => {
                   const n = Number((e.target as HTMLInputElement).value) || 0;
                   stock[i] = Math.min(65535, Math.max(0, Math.round(n)));
@@ -57,22 +59,22 @@ export function unitsPanel(): HTMLElement {
     rows,
     summary: (u) => `type ${u.type} at ${u.x},${u.y} - ${nationName((u.flags as number) & 0x0f)}`,
     detailHead: (u, _i, redraw) => section('Unit',
-      h('div', { class: 'row wrap' },
-        h('label', {}, 'Type'),
-        h('span', { class: 'ro' }, `${u.type}`),
-        h('label', {}, 'Owner'),
+      h('div', { class: 'col-row' },
+        h('span', { class: 'sav-label' }, 'Type'),
+        h('span', { class: 'col-chip' }, `${u.type}`),
+        h('span', { class: 'sav-label' }, 'Owner'),
         // The owning nation is the LOW NIBBLE of the flags byte; the high nibble is a
         // separate flag set, so it has to be preserved rather than overwritten.
         picker(NATION, (u.flags as number) & 0x0f, (v) => {
           u.flags = ((u.flags as number) & 0xf0) | (v & 0x0f);
           store.touch(); redraw();
         }),
-        h('label', {}, 'At'),
-        h('span', { class: 'ro' }, `${u.x}, ${u.y}`),
-        h('label', {}, 'Orders'),
-        h('span', { class: 'ro' }, String(u.orders)),
+        h('span', { class: 'sav-label' }, 'At'),
+        h('span', { class: 'col-chip' }, `${u.x}, ${u.y}`),
+        h('span', { class: 'sav-label' }, 'Orders'),
+        h('span', { class: 'col-chip' }, String(u.orders)),
       ),
-      h('p', { class: 'note' },
+      h('p', { class: 'col-hint' },
         'The owner lives in the low nibble of ', h('code', {}, 'flags'), '; the high nibble is a ',
         'separate flag set and is preserved when you change the owner here.')),
   });
@@ -86,33 +88,37 @@ export function nationsPanel(): HTMLElement {
     summary: (n, i) => `${nationName(i)} - ${n.gold} gold, ${n.tax}% tax`,
     detailHead: (n) => {
       const money = (key: string, label: string, note: string) =>
-        h('label', { class: 'money' },
-          h('span', { class: 'money-k' }, label),
+        h('label', { class: 'col-row' },
+          h('span', { class: 'sav-label sav-money-k' }, label),
           h('input', {
-            type: 'number', class: 'f-num', value: String(n[key]),
+            type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+            value: String(n[key]),
             onchange: (e: Event) => { n[key] = Math.round(Number((e.target as HTMLInputElement).value) || 0); store.touch(); },
           }),
-          h('span', { class: 'money-n' }, note));
+          h('span', { class: 'col-hint' }, note));
       const prices = n.price as number[];
       return h('div', {},
         section('Treasury',
           money('gold', 'Gold', 'the game clamps this to 0..999,999 when it changes it'),
           money('kingChest', "King's chest", 'his balance, not a total: he spends 1800 per soldier'),
           money('netSaleRevenue', 'Net sale revenue', 'cumulative; written every turn and never read'),
-          h('div', { class: 'row wrap' },
-            h('label', {}, 'Tax %'),
+          h('div', { class: 'col-row' },
+            h('span', { class: 'sav-label' }, 'Tax %'),
             h('input', {
-              type: 'number', class: 'f-num f-num-sm', min: 0, max: 255, value: String(n.tax),
+              type: 'number', class: 'col-input col-input--mono sav-input--xs',
+              min: 0, max: 255, value: String(n.tax),
               onchange: (e: Event) => { n.tax = Math.min(255, Math.max(0, Math.round(Number((e.target as HTMLInputElement).value) || 0))); store.touch(); },
             }),
-            h('label', {}, 'Bells'), h('span', { class: 'ro' }, String(n.bells)),
-            h('label', {}, 'Crosses'), h('span', { class: 'ro' }, `${n.crosses} of ${n.crossesNeeded}`))),
+            h('span', { class: 'sav-label' }, 'Bells'), h('span', { class: 'col-chip' }, String(n.bells)),
+            h('span', { class: 'sav-label' }, 'Crosses'),
+            h('span', { class: 'col-chip' }, `${n.crosses} of ${n.crossesNeeded}`))),
         section('Europe prices',
-          h('div', { class: 'goods' }, ...prices.map((v, i) =>
-            h('label', { class: 'good' },
+          h('div', { class: 'sav-cells' }, ...prices.map((v, i) =>
+            h('label', { class: 'sav-cell' },
               h('span', {}, GOODS[i] ?? String(i)),
               h('input', {
-                type: 'number', class: 'f-num f-num-sm', min: 0, max: 255, value: String(v),
+                type: 'number', class: 'col-input col-input--mono sav-input--xs',
+                min: 0, max: 255, value: String(v),
                 onchange: (e: Event) => {
                   prices[i] = Math.min(255, Math.max(0, Math.round(Number((e.target as HTMLInputElement).value) || 0)));
                   store.touch();

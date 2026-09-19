@@ -1,0 +1,232 @@
+/* app.css - everything the editor needs that col.css does not provide.
+ *
+ * col.css (web/vendor/col.css) is the design system and carries every colour, every
+ * control and every surface here. This file holds two kinds of rule, and nothing else:
+ *
+ *   1. APP SHELL. col.css styles a document -- a centred `.col-wrap` that scrolls. The
+ *      editor is a full-viewport application frame with fixed chrome and independently
+ *      scrolling panes. That framing is this app's business, not the design system's.
+ *
+ *   2. GAPS, marked `GAP:`. Rules that are not app-specific at all and would belong
+ *      upstream. Each one is written up in docs/design-system-gaps.md; keep the two in
+ *      step, because that list is the only record of what the shared sheet is missing.
+ *
+ * Everything here is namespaced `sav-`, so `col-` in the markup always means "borrowed,
+ * behaves as the styleguide shows it" and `sav-` always means "local". Never add a `col-`
+ * rule in this file: web-ui treats a shipped class name as a public API, and shadowing one
+ * from a consumer would make the styleguide lie.
+ *
+ * The design tokens ARE used directly -- var(--surface), var(--text-2) and the rest. They
+ * are the public palette, and hard-coding a colour here is how a consumer drifts.
+ */
+
+/* ============================================================ 1. APP SHELL */
+
+/* A tool read at arm's length next to a game window: tighter than col.css's 16px/1.6
+ * document setting, which is sized for prose. */
+.sav-app{
+  display:flex;flex-direction:column;min-height:100vh;
+  font-size:14px;line-height:1.5;
+}
+.sav-app.is-dragging{outline:2px dashed var(--brand);outline-offset:-8px}
+
+/* The top bar spans the window rather than centring on a text column. */
+.sav-bar-in{max-width:none;padding:10px 16px;gap:12px}
+
+/* A one-line machine-readable strip under the bar: file name, byte count, build error.
+ * Not a `.col-note` -- that is a boxed notice for a reader, this is an instrument. */
+.sav-status{
+  padding:5px 16px;font-size:12px;color:var(--text-3);
+  background:var(--surface-2);border-bottom:1px solid var(--border);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sav-status--error{color:var(--danger)}
+
+/* Tabs as chrome: full-bleed, flush against the bar, no document margin. */
+.sav-tabs{margin:0;padding:0 12px;background:var(--surface-2)}
+
+.sav-main{display:flex;flex-direction:column;flex:1;min-height:0}
+.sav-body{flex:1;min-height:0}
+
+/* A panel is a page of the tool. `.col-wrap` is the document equivalent, but it centres
+ * and pads for reading; the wide panels here want the whole window. */
+.sav-panel{padding:18px;max-width:var(--w-wide)}
+.sav-panel--full{max-width:none;padding:0}
+
+.sav-empty{flex:1;display:grid;place-items:center;padding:60px 20px;text-align:center}
+.sav-empty .col-plate{margin:0;max-width:56ch}
+.sav-empty .col-plate > *{margin-left:auto;margin-right:auto}
+.sav-empty .col-eyebrow{justify-content:center}
+
+/* The chrome above is 3 fixed rows; the panes below own the rest of the viewport. */
+.sav-viewport{height:calc(100vh - 124px)}
+
+/* ---- master-detail: a scrolling index beside a scrolling record ---- */
+.sav-split{display:grid;grid-template-columns:300px 1fr}
+.sav-list{
+  display:flex;flex-direction:column;gap:2px;padding:10px;overflow-y:auto;
+  background:var(--surface-2);border-right:1px solid var(--border);
+}
+.sav-detail{overflow-y:auto;padding:18px}
+
+/* ---- map ---- */
+.sav-map{display:flex;flex-direction:column;padding:0}
+.sav-map-bar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;
+  background:var(--surface-2);border-bottom:1px solid var(--border);
+}
+.sav-map-split{display:grid;grid-template-columns:1fr 380px;flex:1;min-height:0}
+.sav-map-wrap{overflow:auto;padding:16px;display:grid;place-items:start center;background:var(--bg)}
+.sav-map-canvas{cursor:crosshair}
+.sav-map-side{overflow-y:auto;padding:16px;background:var(--surface-2);border-left:1px solid var(--border)}
+.sav-map-side .col-card{background:var(--surface-3)}
+.sav-map-side > h3:first-child{margin-top:0}
+
+/* A stack of cards is the shape of every panel; `.col-card` carries no margin of its own
+ * because the document layouts that use it space their own children. */
+.sav-sec{margin-bottom:14px}
+.sav-panel > .col-tiles{margin-bottom:22px}
+
+/* The money rows line their inputs up rather than letting each label size itself. */
+.sav-money-k{min-width:150px}
+
+/* ============================================================ 2. GAPS */
+
+/* GAP 1: a nav list. Rows of a selectable index -- flush, dense, one active.
+ * `.col-table` is a table of figures and `.col-tabs` is horizontal; neither is this. */
+.sav-list-item{
+  display:flex;align-items:baseline;gap:9px;width:100%;
+  padding:6px 9px;border:0;border-radius:var(--r-sm);
+  font:inherit;font-size:13px;text-align:left;
+  background:none;color:var(--text);cursor:pointer;
+  transition:background var(--t-fast) var(--ease);
+}
+.sav-list-item:hover{background:var(--surface-3)}
+.sav-list-item.is-active{background:var(--brand);color:var(--on-brand)}
+.sav-list-i{
+  min-width:26px;flex:none;
+  font-family:var(--font-mono);font-size:11px;color:var(--text-3);
+  font-variant-numeric:tabular-nums;
+}
+.sav-list-item.is-active .sav-list-i{color:var(--on-brand);opacity:.75}
+
+/* GAP 2: a property grid. Label, control and a note, repeated for 150 fields.
+ * `dl.col-dl` is the read-only two-column cousin: no control column, no third row for the
+ * note, and right-aligned keys that make a long scan hard to follow. */
+.sav-fields{display:flex;flex-direction:column}
+.sav-field{
+  display:grid;grid-template-columns:230px 1fr;gap:9px 16px;align-items:start;
+  padding:9px 0;border-top:1px solid var(--rule);
+}
+.sav-field:first-child{border-top:0}
+.sav-field-label{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.sav-field-name{font-family:var(--font-mono);font-size:13px}
+.sav-field-desc{
+  grid-column:2;max-width:80ch;
+  font-size:12px;line-height:1.5;color:var(--text-3);
+}
+/* A field whose meaning is not established is shown, never hidden -- but it should not
+ * compete with the ones that are. Full strength on hover, because it is exactly the row
+ * someone poking at the format has come for. */
+.sav-field--unknown{opacity:.72}
+.sav-field--unknown:hover{opacity:1}
+
+/* GAP 3: small mono metadata -- an offset, a width, a write number. Smaller than
+ * `.col-mono` and quieter; `.col-badge` is the nearest thing and it is a pill. */
+.sav-meta{
+  font-family:var(--font-mono);font-size:11px;color:var(--text-3);
+  font-variant-numeric:tabular-nums;
+}
+
+/* GAP 4: inline and compact form controls. `.col-input` is `width:100%` at 14.5px with
+ * 10px padding -- right for a form, far too big for a row of 16 warehouse figures. */
+.sav-input--sm{padding:5px 8px;font-size:13px}
+.sav-input--num{width:112px}
+.sav-input--xs{width:78px;padding:5px 8px;font-size:13px}
+.sav-input--text{width:260px}
+.sav-select--auto{width:auto;min-width:160px;padding-top:6px;padding-bottom:6px;font-size:13px}
+.sav-hex{min-height:0;font-size:12px;line-height:1.5}
+
+/* GAP 5: the same controls with their document margins off, for use in a row.
+ * `.col-field`, `.col-check` and `.col-switch` all carry a bottom margin that assumes a
+ * stacked form. */
+.col-row > .col-check,
+.col-row > .col-field,
+.sav-field .col-check{margin-bottom:0}
+
+/* GAP 6: an inline label. `.col-label` is `display:block` with a margin under it, for a
+ * control on the next line; a dense row needs the label beside the control. */
+.sav-label{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);
+  white-space:nowrap;
+}
+
+/* GAP 7: a captioned control cell -- a tiny caption over a tiny input, tiled. The
+ * warehouse, the Europe price list and every fixed-length array field are this shape. */
+.sav-cells{display:flex;flex-wrap:wrap;gap:8px}
+.sav-cell{display:flex;flex-direction:column;gap:3px}
+.sav-cell > span{font-size:10.5px;color:var(--text-3)}
+
+/* GAP 8: text in a status colour. col.css has `.col-dim` and `.col-faint` but nothing for
+ * ok/warn/danger outside a badge, a note or a button. */
+.sav-ok{color:var(--ok)}
+.sav-warn{color:var(--warn)}
+
+/* GAP 9: a disclosure. A `<details>` that reads as a card -- used for the full field dump
+ * under every panel's friendly summary. */
+.sav-disclosure{
+  margin-top:10px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+}
+.sav-disclosure > summary{
+  padding:11px 14px;cursor:pointer;
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--text-2);
+}
+.sav-disclosure > summary:hover{color:var(--text)}
+.sav-disclosure > *:not(summary){padding:0 14px}
+.sav-disclosure > *:last-child{padding-bottom:14px}
+
+/* GAP 10: a range input. col.css styles every other control; a native range beside them
+ * is the one place the page stops looking like itself. */
+.sav-range{
+  -webkit-appearance:none;appearance:none;
+  width:130px;height:18px;background:none;cursor:pointer;
+}
+.sav-range::-webkit-slider-runnable-track{
+  height:4px;background:var(--surface-3);
+  border:1px solid var(--border);border-radius:var(--r-xs);
+}
+.sav-range::-moz-range-track{
+  height:4px;background:var(--surface-3);
+  border:1px solid var(--border);border-radius:var(--r-xs);
+}
+.sav-range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:14px;margin-top:-6px;
+  background:var(--brand);border:0;border-radius:var(--r-xs);
+}
+.sav-range::-moz-range-thumb{
+  width:12px;height:14px;
+  background:var(--brand);border:0;border-radius:var(--r-xs);
+}
+
+/* GAP 11: a file-input button. The only way to style `<input type=file>` is to hide it
+ * under a label, and every tool that opens a file needs the same trick. */
+.sav-filebtn{position:relative;overflow:hidden}
+.sav-filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* GAP 12: a stat tile whose value is text, not a figure. `.col-tile-v` is 30px and
+ * letter-spaced for a number; a file name at that size wraps out of the tile. */
+.sav-tile-v--text{font-size:16px;letter-spacing:-.01em;word-break:break-all}
+
+/* ============================================================ narrow */
+
+@media (max-width:900px){
+  .sav-viewport{height:auto}
+  .sav-split,.sav-map-split{grid-template-columns:1fr}
+  .sav-list{border-right:0;border-bottom:1px solid var(--border);max-height:240px}
+  .sav-map-side{border-left:0;border-top:1px solid var(--border)}
+  .sav-field{grid-template-columns:1fr}
+  .sav-field-desc{grid-column:1}
+}
