@@ -1,6 +1,6 @@
 /** The five record panels. Each is a list-detail with a domain summary on top. */
 import { COLONY, NATION_REC, SETTLEMENT, TRIBE, UNIT } from '../../../src/format/records.js';
-import { GOODS, NATION } from '../../../src/format/enums.js';
+import { GOODS, NATION, PROFESSION, UNIT_TYPE } from '../../../src/format/enums.js';
 import { store } from '../state.js';
 import { h } from '../dom.js';
 import { listPanel } from './list.js';
@@ -8,6 +8,19 @@ import { picker, section } from './overview.js';
 import type { RecordValue } from '../fields.js';
 
 const nationName = (n: number) => NATION[n] ?? `nation ${n}`;
+const nationEmoji = (n: number) => ({
+  0: '🇬🇧',
+  1: '🇫🇷',
+  2: '🇪🇸',
+  3: '🇳🇱',
+}[n] ?? '•');
+const nationLabel = (n: number) => `${nationEmoji(n)} ${nationName(n)}`;
+const unitName = (u: RecordValue) => {
+  const type = u.type as number;
+  const spec = u.spec as number;
+  if (type === 0 && spec in PROFESSION) return PROFESSION[spec]!;
+  return UNIT_TYPE[type] ?? `unit ${type}`;
+};
 
 export function coloniesPanel(): HTMLElement {
   const rows = store.save!.doc.colonies as RecordValue[];
@@ -15,7 +28,7 @@ export function coloniesPanel(): HTMLElement {
     spec: COLONY,
     rows,
     empty: 'No colonies in this save.',
-    summary: (c) => `${c.name || '(unnamed)'} - pop ${c.pop}, ${nationName(c.nation as number)}`,
+    summary: (c) => `${nationEmoji(c.nation as number)} ${c.name || '(unnamed)'} (${c.pop})`,
     detailHead: (c, _i, redraw) => {
       const stock = c.stock as number[];
       return h('div', {},
@@ -57,11 +70,15 @@ export function unitsPanel(): HTMLElement {
   return listPanel({
     spec: UNIT,
     rows,
-    summary: (u) => `type ${u.type} at ${u.x},${u.y} - ${nationName((u.flags as number) & 0x0f)}`,
+    summary: (u) => {
+      const owner = (u.flags as number) & 0x0f;
+      const native = owner >= 4 ? ` ${nationName(owner)}` : '';
+      return `${nationEmoji(owner)} ${unitName(u)} [${u.x},${u.y}]${native}`;
+    },
     detailHead: (u, _i, redraw) => section('Unit',
       h('div', { class: 'col-row' },
         h('span', { class: 'sav-label' }, 'Type'),
-        h('span', { class: 'col-chip' }, `${u.type}`),
+        h('span', { class: 'col-chip' }, unitName(u)),
         h('span', { class: 'sav-label' }, 'Owner'),
         // The owning nation is the LOW NIBBLE of the flags byte; the high nibble is a
         // separate flag set, so it has to be preserved rather than overwritten.
@@ -85,7 +102,8 @@ export function nationsPanel(): HTMLElement {
   return listPanel({
     spec: NATION_REC,
     rows,
-    summary: (n, i) => `${nationName(i)} - ${n.gold} gold, ${n.tax}% tax`,
+    filter: false,
+    summary: (n, i) => `${nationLabel(i)} - ${n.gold} gold, ${n.tax}% tax`,
     detailHead: (n) => {
       const money = (key: string, label: string, note: string) =>
         h('label', { class: 'col-row' },
@@ -135,7 +153,7 @@ export function settlementsPanel(): HTMLElement {
     spec: SETTLEMENT,
     rows,
     empty: 'No native settlements in this save.',
-    summary: (s) => `${nationName(s.owner as number)} at ${s.x},${s.y} - size ${s.size}${s.mission ? ', mission' : ''}`,
+    summary: (s) => `${nationName(s.owner as number)} (${s.size}) [${s.x},${s.y}]`,
   });
 }
 
@@ -145,6 +163,6 @@ export function tribesPanel(): HTMLElement {
     spec: TRIBE,
     rows,
     // Tribes are the native half of the nation index space, addressed as i - 4.
-    summary: (t, i) => `${nationName(i + 4)} - level ${t.level}, ${t.muskets} muskets, ${t.horses} horses`,
+    summary: (t, i) => `${nationName(i + 4)} (lvl ${t.level}.), ${t.muskets}M, ${t.horses}H`,
   });
 }

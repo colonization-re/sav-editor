@@ -8,5 +8,5 @@ export { RECORDS } from './format/records.js';
 export * from './format/map.js';
 export { dateFromTurn, turnFromDate, START_YEAR, SEASON_YEAR } from './format/calendar.js';
 export type { GameDate } from './format/calendar.js';
-export { ENUMS, GOODS, NATION, DIFFICULTY, FATHERS, TERRAIN, GAME_FLAGS } from './format/enums.js';
+export { ENUMS, GOODS, NATION, UNIT_TYPE, PROFESSION, DIFFICULTY, FATHERS, TERRAIN, GAME_FLAGS } from './format/enums.js';
 export type { FieldSpec, RecordSpec, Confidence, Prim } from './format/types.js';

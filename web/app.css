@@ -67,6 +67,7 @@
   display:flex;flex-direction:column;gap:2px;padding:10px;overflow-y:auto;
   background:var(--surface-2);border-right:1px solid var(--border);
 }
+.sav-list-rows{display:flex;flex-direction:column;gap:2px}
 .sav-detail{overflow-y:auto;padding:18px}
 
 /* ---- map ---- */
@@ -86,6 +87,10 @@
  * because the document layouts that use it space their own children. */
 .sav-sec{margin-bottom:14px}
 .sav-panel > .col-tiles{margin-bottom:22px}
+.sav-tiles--compact{grid-template-columns:repeat(4,minmax(0,1fr))}
+.sav-tiles--compact .col-tile{padding:11px 13px}
+.sav-tiles--compact .col-tile-v{font-size:19px;margin-top:4px;letter-spacing:0}
+.sav-tiles--compact .col-tile-d{font-size:11.5px;margin-top:3px}
 
 /* The money rows line their inputs up rather than letting each label size itself. */
 .sav-money-k{min-width:150px}
@@ -187,6 +192,14 @@
 .sav-disclosure > *:not(summary){padding:0 14px}
 .sav-disclosure > *:last-child{padding-bottom:14px}
 
+.sav-inline-disclosure{margin-top:8px}
+.sav-inline-disclosure > summary{
+  cursor:pointer;color:var(--text-2);font-size:12px;
+}
+.sav-inline-disclosure > summary:hover{color:var(--text)}
+.sav-inline-disclosure > *:not(summary){margin-top:8px}
+.sav-check-row{gap:8px 14px}
+
 /* GAP 10: a range input. col.css styles every other control; a native range beside them
  * is the one place the page stops looking like itself. */
 .sav-range{
@@ -223,6 +236,7 @@
 /* ============================================================ narrow */
 
 @media (max-width:900px){
+  .sav-tiles--compact{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sav-viewport{height:auto}
   .sav-split,.sav-map-split{grid-template-columns:1fr}
   .sav-list{border-right:0;border-bottom:1px solid var(--border);max-height:240px}

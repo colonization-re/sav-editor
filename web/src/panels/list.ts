@@ -18,6 +18,7 @@ export interface ListPanelOptions {
   /** Optional extra controls above the generic editor. */
   detailHead?: (r: RecordValue, i: number, redraw: () => void) => Node | null;
   empty?: string;
+  filter?: boolean;
   readOnly?: ReadonlySet<string>;
 }
 
@@ -33,19 +34,22 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
   }
 
   let selected = 0;
+  const useFilter = o.filter ?? true;
   const filter = h('input', {
     type: 'search', class: 'col-input sav-input--sm',
     placeholder: `Filter ${o.rows.length}...`, oninput: () => renderList(),
   });
+  const rows = h('div', { class: 'sav-list-rows' });
+  if (useFilter) list.appendChild(filter);
+  list.appendChild(rows);
 
   const renderList = () => {
-    clear(list);
-    list.appendChild(filter);
-    const q = filter.value.trim().toLowerCase();
+    clear(rows);
+    const q = useFilter ? filter.value.trim().toLowerCase() : '';
     o.rows.forEach((r, i) => {
       const text = o.summary(r, i);
       if (q && !text.toLowerCase().includes(q)) return;
-      list.appendChild(h('button', {
+      rows.appendChild(h('button', {
         class: `sav-list-item${i === selected ? ' is-active' : ''}`,
         onclick: () => { selected = i; renderList(); renderDetail(); },
       }, h('span', { class: 'sav-list-i' }, String(i)), text));
