@@ -61,7 +61,8 @@ here document a contest that is still open.
 ## Commands
 
 ```bash
-npm run check                      # typecheck + schema freshness + tests. Run before committing.
+npm run check                      # typecheck + vendored CSS + schema freshness + tests. Before committing.
+npm run vendor:css -- v1.2.0       # bump col.css to a web-ui release (verifies sha256)
 npm test
 npm run sav -- info   saves/AUTO01.SAV
 npm run sav -- verify saves/_DECLARE.SAV     # round-trip + schema, per file
@@ -86,6 +87,36 @@ npm run sav -- encode out.json NEW.SAV
 `dist-web/index.html`, a single self-contained file that runs from `file://`. **Keep it that
 way** — no server, no network, no analytics. People's saves stay on their machine because there
 is nowhere for them to go.
+
+### Styling
+
+The editor is styled by [web-ui](https://github.com/colonization-re/web-ui)'s `col.css`,
+**vendored** at `web/vendor/col.css` and inlined by the build. It is vendored rather than
+linked precisely because of the rule above: a `<link>` to a release URL would make the editor
+phone GitHub every time someone opens a save.
+
+It is pinned to a release, not copied by hand. `web/vendor/col-css.json` holds the tag and
+the sha256 and is the only place the version lives; `npm run vendor:css -- v1.2.0` bumps it,
+verifying the download against the release's `SHA256SUMS.txt`. `npm run check` runs
+`vendor:css -- --check`, which fails if the committed file does not match the pin — so never
+edit `col.css` by hand, and never copy it out of a local web-ui checkout.
+
+Two namespaces, and the split is the point:
+
+- **`col-*` means borrowed.** It behaves exactly as the web-ui styleguide shows it. Never
+  write a `col-*` rule here — web-ui treats a shipped class name as a public API, and
+  shadowing one from a consumer makes the styleguide lie.
+- **`sav-*` means local**, and lives in `web/app.css`. That file holds the app shell (the
+  full-viewport frame col.css deliberately does not own) and, marked `GAP:`, the things the
+  design system is missing.
+
+**Every `GAP:` rule is written up in [docs/design-system-gaps.md](docs/design-system-gaps.md).**
+Keep the two in step — that document is the only report web-ui gets from this consumer. If
+you find yourself adding a `sav-` rule that is not specific to savegame editing, it is a
+gap: add it there too, with what uses it.
+
+Before reaching for a new rule, check the styleguide. Most of what a panel needs is already
+there, and the last conversion deleted a 171-line stylesheet by finding it.
 
 Keep the core (`src/format`, `src/codec`) free of Node-only APIs so it runs unchanged in a
 browser — `src/codec/cursor.ts` falls back from `Buffer` to `btoa`/`atob` for that reason.

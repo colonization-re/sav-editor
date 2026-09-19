@@ -17,10 +17,11 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "schema": "tsx src/schema/generate.ts",
+    "vendor:css": "node scripts/vendor-css.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "sav": "tsx src/cli.ts",
-    "check": "npm run typecheck && npm run web:check && npm run schema -- --check && npm test",
+    "check": "npm run typecheck && npm run vendor:css -- --check && npm run web:check && npm run schema -- --check && npm test",
     "web:dev": "node web/build.mjs --watch",
     "web:build": "node web/build.mjs",
     "web:check": "tsc -p web/tsconfig.json --noEmit"

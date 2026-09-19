@@ -18,34 +18,41 @@ export interface ListPanelOptions {
   /** Optional extra controls above the generic editor. */
   detailHead?: (r: RecordValue, i: number, redraw: () => void) => Node | null;
   empty?: string;
+  filter?: boolean;
   readOnly?: ReadonlySet<string>;
 }
 
 export function listPanel(o: ListPanelOptions): HTMLElement {
-  const root = h('div', { class: 'panel split' });
-  const list = h('div', { class: 'list' });
-  const detail = h('div', { class: 'detail' });
+  const root = h('div', { class: 'sav-panel sav-panel--full sav-split sav-viewport' });
+  const list = h('div', { class: 'sav-list' });
+  const detail = h('div', { class: 'sav-detail' });
   root.append(list, detail);
 
   if (o.rows.length === 0) {
-    detail.appendChild(h('p', { class: 'note' }, o.empty ?? 'Nothing of this kind in the save.'));
+    detail.appendChild(h('p', { class: 'col-hint' }, o.empty ?? 'Nothing of this kind in the save.'));
     return root;
   }
 
   let selected = 0;
-  const filter = h('input', { type: 'search', class: 'filter', placeholder: `Filter ${o.rows.length}...` , oninput: () => renderList() });
+  const useFilter = o.filter ?? true;
+  const filter = h('input', {
+    type: 'search', class: 'col-input sav-input--sm',
+    placeholder: `Filter ${o.rows.length}...`, oninput: () => renderList(),
+  });
+  const rows = h('div', { class: 'sav-list-rows' });
+  if (useFilter) list.appendChild(filter);
+  list.appendChild(rows);
 
   const renderList = () => {
-    clear(list);
-    list.appendChild(filter);
-    const q = filter.value.trim().toLowerCase();
+    clear(rows);
+    const q = useFilter ? filter.value.trim().toLowerCase() : '';
     o.rows.forEach((r, i) => {
       const text = o.summary(r, i);
       if (q && !text.toLowerCase().includes(q)) return;
-      list.appendChild(h('button', {
-        class: `list-item${i === selected ? ' on' : ''}`,
+      rows.appendChild(h('button', {
+        class: `sav-list-item${i === selected ? ' is-active' : ''}`,
         onclick: () => { selected = i; renderList(); renderDetail(); },
-      }, h('span', { class: 'list-i' }, String(i)), text));
+      }, h('span', { class: 'sav-list-i' }, String(i)), text));
     });
   };
 
@@ -54,7 +61,7 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
     const r = o.rows[selected]!;
     const head = o.detailHead?.(r, selected, () => { renderList(); renderDetail(); });
     if (head) detail.appendChild(head);
-    detail.appendChild(h('details', { class: 'more', open: !head },
+    detail.appendChild(h('details', { class: 'sav-disclosure', open: !head },
       h('summary', {}, `All ${o.spec.size} bytes of ${o.spec.name} #${selected}`),
       recordEditor(o.spec, r, {
         onChange: () => { store.touch(); renderList(); },

@@ -60,6 +60,66 @@ export const NATION: EnumTable = {
   11: "Tupi",
 };
 
+/** unit_type from the save metadata used by existing Colonization save utilities. */
+export const UNIT_TYPE: EnumTable = {
+  0: "Colonist",
+  1: "Soldier",
+  2: "Pioneer",
+  3: "Missionary",
+  4: "Dragoon",
+  5: "Scout",
+  6: "Tory regular",
+  7: "Continental cavalry",
+  8: "Tory cavalry",
+  9: "Continental army",
+  10: "Treasure",
+  11: "Artillery",
+  12: "Wagon train",
+  13: "Caravel",
+  14: "Merchantman",
+  15: "Galleon",
+  16: "Privateer",
+  17: "Frigate",
+  18: "Man-O-War",
+  19: "Brave",
+  20: "Armed brave",
+  21: "Mounted brave",
+  22: "Mounted warrior",
+};
+
+/** profession_type/specialty values used by colonist-like units. */
+export const PROFESSION: EnumTable = {
+  0: "Expert farmer",
+  1: "Master sugar planter",
+  2: "Master tobacco planter",
+  3: "Master cotton planter",
+  4: "Expert fur trapper",
+  5: "Expert lumberjack",
+  6: "Expert ore miner",
+  7: "Expert silver miner",
+  8: "Expert fisherman",
+  9: "Master distiller",
+  10: "Master tobacconist",
+  11: "Master weaver",
+  12: "Master fur trader",
+  13: "Master carpenter",
+  14: "Master blacksmith",
+  15: "Master gunsmith",
+  16: "Firebrand preacher",
+  17: "Elder statesman",
+  18: "Student",
+  19: "Free colonist",
+  20: "Hardy pioneer",
+  21: "Veteran soldier",
+  22: "Seasoned scout",
+  23: "Veteran dragoon",
+  24: "Jesuit missionary",
+  25: "Indentured servant",
+  26: "Petty criminal",
+  27: "Indian convert",
+  28: "Free colonist",
+};
+
 /** fathers.h -- the index is also the bit number in a nation's founding-father bitset. */
 export const FATHERS: EnumTable = {
   0: "Adam Smith",
@@ -123,6 +183,8 @@ export const ENUMS: Readonly<Record<string, EnumTable>> = {
   GOODS,
   DIFFICULTY,
   NATION,
+  UNIT_TYPE,
+  PROFESSION,
   FATHERS,
   TERRAIN,
 };

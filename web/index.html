@@ -1,38 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Colonization savegame editor</title>
-<!--STYLE--><link rel="stylesheet" href="styles.css"><!--/STYLE-->
+<!-- Dark by default: this is a tool, used next to a DOS-era game window. Remove the
+     data-theme attribute on <html> to follow the system setting instead. -->
+<!--STYLE--><link rel="stylesheet" href="vendor/col.css"><link rel="stylesheet" href="app.css"><!--/STYLE-->
 </head>
 <body>
-<div id="app">
-  <div class="top">
-    <div class="brand">Colonization <span>savegame editor</span></div>
-    <label class="btn file-btn">Open .SAV<input id="file" type="file" accept=".sav,.SAV"></label>
-    <span class="spacer"></span>
-    <button id="revert" class="btn" disabled>Revert</button>
-    <button id="json" class="btn" disabled>Export JSON</button>
-    <button id="save" class="btn primary" disabled>Download .SAV</button>
-  </div>
-  <div id="status" class="status"></div>
+<div id="app" class="sav-app">
+  <header class="col-bar">
+    <div class="col-bar-in sav-bar-in">
+      <span class="col-brand"><span class="col-brand-mark"></span>Colonization <span class="col-dim">savegame editor</span></span>
+      <label class="col-btn col-btn--outline col-btn--sm sav-filebtn">Open .SAV<input id="file" type="file" accept=".sav,.SAV"></label>
+      <span class="col-push"></span>
+      <button id="revert" class="col-btn col-btn--quiet col-btn--sm" disabled>Revert</button>
+      <button id="json" class="col-btn col-btn--ghost col-btn--sm" disabled>Export JSON</button>
+      <button id="save" class="col-btn col-btn--sm" disabled>Download .SAV</button>
+    </div>
+  </header>
+  <div id="status" class="sav-status"></div>
 
-  <div id="empty" class="empty">
-    <div>
+  <div id="empty" class="sav-empty">
+    <div class="col-plate">
+      <p class="col-eyebrow">no file open</p>
       <h1>Drop a <code>.SAV</code> file here</h1>
-      <p>Everything happens in this page. Your save is never uploaded anywhere &mdash; there is no server to upload it to.</p>
-      <p class="small">
+      <p class="col-lead">Everything happens in this page. Your save is never uploaded anywhere &mdash; there is no server to upload it to.</p>
+      <p class="col-hint">
         Colonization for Windows, save version 0x49. Two sample saves are all this layout has
         been checked against, so keep a backup.
       </p>
     </div>
   </div>
 
-  <div id="main" style="display:none">
-    <div id="tabs"></div>
-    <div id="body"></div>
-  </div>
+  <main id="main" class="sav-main" style="display:none">
+    <div id="tabs" class="col-tabs sav-tabs"></div>
+    <div id="body" class="sav-body"></div>
+  </main>
 </div>
 <!--SCRIPT--><script type="module" src="./dist/bundle.js"></script><!--/SCRIPT-->
 </body>

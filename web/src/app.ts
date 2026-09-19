@@ -29,10 +29,10 @@ export function start(): void {
 
   const drop = qs('#app');
   for (const ev of ['dragover', 'dragenter'] as const) {
-    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragging'); });
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('is-dragging'); });
   }
   for (const ev of ['dragleave', 'drop'] as const) {
-    drop.addEventListener(ev, () => drop.classList.remove('dragging'));
+    drop.addEventListener(ev, () => drop.classList.remove('is-dragging'));
   }
   drop.addEventListener('drop', async (e) => {
     e.preventDefault();
@@ -94,7 +94,7 @@ function render(): void {
   let error = '';
   try { changed = store.build().changed; } catch (e) { error = (e as Error).message; }
 
-  bar.className = error ? 'status bad' : 'status';
+  bar.className = error ? 'sav-status sav-status--error' : 'sav-status';
   bar.textContent = error
     ? `cannot build: ${error}`
     : store.dirty
@@ -105,7 +105,8 @@ function render(): void {
   clear(tabs);
   for (const t of TABS) {
     tabs.appendChild(h('button', {
-      class: `tab${t.id === active ? ' on' : ''}`,
+      class: `col-tab${t.id === active ? ' is-active' : ''}`,
+      'aria-selected': String(t.id === active),
       onclick: () => { active = t.id; render(); },
     }, t.label));
   }
@@ -116,6 +117,6 @@ function render(): void {
   try {
     body.appendChild(tab.render());
   } catch (err) {
-    body.appendChild(h('p', { class: 'f-err' }, `panel failed: ${(err as Error).message}`));
+    body.appendChild(h('p', { class: 'col-hint col-hint--error' }, `panel failed: ${(err as Error).message}`));
   }
 }

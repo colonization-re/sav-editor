@@ -12,32 +12,33 @@ import { fromB64, toB64 } from '../fields.js';
 
 export function rawPanel(): HTMLElement {
   const doc = store.save!.doc;
-  const root = h('div', { class: 'panel' });
+  const root = h('div', { class: 'sav-panel' });
 
-  root.appendChild(h('p', { class: 'note' },
+  root.appendChild(h('p', { class: 'col-hint' },
     'Every top-level field that is not a record array or a map plane, in file order. ',
     'The write number cites col-win-re docs/formats/save-file.md. Most of these have no ',
     'established meaning and are carried through untouched.'));
 
-  const table = h('div', { class: 'raw' });
+  const table = h('div', { class: 'sav-fields' });
   for (const s of SECTIONS) {
     if (s.kind !== 'scalar' && s.kind !== 'blob') continue;
     const v = doc.state[s.key];
 
     const body = s.kind === 'scalar'
       ? h('input', {
-          type: 'number', class: 'f-num', value: String(v),
+          type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+          value: String(v),
           onchange: (e: Event) => { doc.state[s.key] = Math.round(Number((e.target as HTMLInputElement).value) || 0); store.touch(); },
         })
       : hexBox(s.key, s.size);
 
-    table.appendChild(h('div', { class: 'raw-row' },
-      h('div', { class: 'raw-k' },
-        h('span', { class: 'f-name' }, s.key),
-        h('span', { class: 'f-off' }, `write ${s.writes}`),
-        s.kind === 'blob' ? h('span', { class: 'f-off' }, `${s.size} B`) : null),
-      h('div', { class: 'raw-v' }, body),
-      s.desc ? h('div', { class: 'f-desc' }, s.desc) : null));
+    table.appendChild(h('div', { class: 'sav-field' },
+      h('div', { class: 'sav-field-label' },
+        h('span', { class: 'sav-field-name' }, s.key),
+        h('span', { class: 'sav-meta' }, `write ${s.writes}`),
+        s.kind === 'blob' ? h('span', { class: 'sav-meta' }, `${s.size} B`) : null),
+      h('div', {}, body),
+      s.desc ? h('div', { class: 'sav-field-desc' }, s.desc) : null));
   }
   root.appendChild(table);
   return root;
@@ -48,9 +49,9 @@ function hexBox(key: string, size: number): HTMLElement {
   const get = () => [...fromB64((doc.state[key] as { $b64: string }).$b64)]
     .map((b) => b.toString(16).padStart(2, '0')).join(' ');
 
-  const err = h('span', { class: 'f-err' });
+  const err = h('span', { class: 'col-hint col-hint--error' });
   const el = h('textarea', {
-    class: 'f-hex', rows: Math.min(8, Math.ceil(size / 24)), spellcheck: false, value: get(),
+    class: 'col-textarea col-input--mono sav-hex', rows: Math.min(8, Math.ceil(size / 24)), spellcheck: false, value: get(),
     onchange: () => {
       const parts = el.value.trim().split(/[\s,]+/).filter(Boolean);
       if (parts.length !== size) {
