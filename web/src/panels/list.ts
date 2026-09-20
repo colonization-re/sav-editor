@@ -15,11 +15,21 @@ export interface ListPanelOptions {
   rows: RecordValue[];
   /** One line per row in the list. */
   summary: (r: RecordValue, i: number) => string;
+  /** Optional controls above the text filter. */
+  controls?: (redraw: () => void) => Node | null;
+  include?: (r: RecordValue, i: number) => boolean;
+  sort?: (a: ListItem, b: ListItem) => number;
   /** Optional extra controls above the generic editor. */
   detailHead?: (r: RecordValue, i: number, redraw: () => void) => Node | null;
   empty?: string;
   filter?: boolean;
   readOnly?: ReadonlySet<string>;
+}
+
+export interface ListItem {
+  r: RecordValue;
+  i: number;
+  text: string;
 }
 
 export function listPanel(o: ListPanelOptions): HTMLElement {
@@ -35,36 +45,59 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
 
   let selected = 0;
   const useFilter = o.filter ?? true;
+  const redrawAll = () => { renderList(); renderDetail(); };
+  const controls = o.controls?.(redrawAll);
   const filter = h('input', {
     type: 'search', class: 'col-input sav-input--sm',
-    placeholder: `Filter ${o.rows.length}...`, oninput: () => renderList(),
+    placeholder: `Filter ${o.rows.length}...`, oninput: redrawAll,
   });
   const rows = h('div', { class: 'sav-list-rows' });
+  if (controls) list.appendChild(controls);
   if (useFilter) list.appendChild(filter);
   list.appendChild(rows);
 
-  const renderList = () => {
-    clear(rows);
+  const visibleRows = (): ListItem[] => {
     const q = useFilter ? filter.value.trim().toLowerCase() : '';
+    const items: ListItem[] = [];
     o.rows.forEach((r, i) => {
+      if (o.include && !o.include(r, i)) return;
       const text = o.summary(r, i);
       if (q && !text.toLowerCase().includes(q)) return;
+      items.push({ r, i, text });
+    });
+    if (o.sort) items.sort(o.sort);
+    return items;
+  };
+
+  const renderList = () => {
+    clear(rows);
+    const items = visibleRows();
+    if (items.length === 0) {
+      rows.appendChild(h('p', { class: 'col-hint sav-list-empty' }, 'No matching records.'));
+      return;
+    }
+    if (!items.some((item) => item.i === selected)) selected = items[0]!.i;
+    items.forEach(({ i, text }) => {
       rows.appendChild(h('button', {
         class: `sav-list-item${i === selected ? ' is-active' : ''}`,
-        onclick: () => { selected = i; renderList(); renderDetail(); },
+        onclick: () => { selected = i; redrawAll(); },
       }, h('span', { class: 'sav-list-i' }, String(i)), text));
     });
   };
 
   const renderDetail = () => {
     clear(detail);
+    if (visibleRows().length === 0) {
+      detail.appendChild(h('p', { class: 'col-hint' }, 'No matching records.'));
+      return;
+    }
     const r = o.rows[selected]!;
     const head = o.detailHead?.(r, selected, () => { renderList(); renderDetail(); });
     if (head) detail.appendChild(head);
     detail.appendChild(h('details', { class: 'sav-disclosure', open: !head },
       h('summary', {}, `All ${o.spec.size} bytes of ${o.spec.name} #${selected}`),
       recordEditor(o.spec, r, {
-        onChange: () => { store.touch(); renderList(); },
+        onChange: () => { store.touch(); redrawAll(); },
         ...(o.readOnly ? { readOnly: o.readOnly } : {}),
       })));
   };

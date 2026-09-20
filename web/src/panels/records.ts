@@ -3,9 +3,12 @@ import { COLONY, NATION_REC, SETTLEMENT, TRIBE, UNIT } from '../../../src/format
 import { GOODS, NATION, PROFESSION, UNIT_TYPE } from '../../../src/format/enums.js';
 import { store } from '../state.js';
 import { h } from '../dom.js';
-import { listPanel } from './list.js';
+import { listPanel, type ListItem } from './list.js';
 import { picker, section } from './overview.js';
 import type { RecordValue } from '../fields.js';
+
+type NationFilter = number | 'all';
+type ColonySort = 'file' | 'population' | 'name';
 
 const nationName = (n: number) => NATION[n] ?? `nation ${n}`;
 const nationEmoji = (n: number) => ({
@@ -15,19 +18,45 @@ const nationEmoji = (n: number) => ({
   3: '🇳🇱',
 }[n] ?? '•');
 const nationLabel = (n: number) => `${nationEmoji(n)} ${nationName(n)}`;
+const ownerOfUnit = (u: RecordValue) => (u.flags as number) & 0x0f;
 const unitName = (u: RecordValue) => {
   const type = u.type as number;
   const spec = u.spec as number;
   if (type === 0 && spec in PROFESSION) return PROFESSION[spec]!;
   return UNIT_TYPE[type] ?? `unit ${type}`;
 };
+const byText = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+function nationFilter(
+  label: string,
+  value: () => NationFilter,
+  set: (v: NationFilter) => void,
+  redraw: () => void,
+): HTMLElement {
+  const sel = h('select', {
+    class: 'col-select sav-select--auto',
+    onchange: () => { set(sel.value === 'all' ? 'all' : Number(sel.value)); redraw(); },
+  }, h('option', { value: 'all', selected: value() === 'all' }, 'All'),
+    ...Object.entries(NATION).map(([k, name]) => h('option', {
+      value: k,
+      selected: value() === Number(k),
+    }, `${nationEmoji(Number(k))} ${name}`)));
+  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'sav-label' }, label), sel);
+}
 
 export function coloniesPanel(): HTMLElement {
   const rows = store.save!.doc.colonies as RecordValue[];
+  let filterNation: NationFilter = 'all';
+  let sort: ColonySort = 'file';
   return listPanel({
     spec: COLONY,
     rows,
     empty: 'No colonies in this save.',
+    controls: (redraw) => h('div', { class: 'sav-list-tools' },
+      nationFilter('Nation', () => filterNation, (v) => { filterNation = v; }, redraw),
+      sortPicker(() => sort, (v) => { sort = v; }, redraw)),
+    include: (c) => filterNation === 'all' || c.nation === filterNation,
+    sort: (a, b) => colonyCompare(sort, a, b),
     summary: (c) => `${nationEmoji(c.nation as number)} ${c.name || '(unnamed)'} (${c.pop})`,
     detailHead: (c, _i, redraw) => {
       const stock = c.stock as number[];
@@ -67,11 +96,15 @@ export function coloniesPanel(): HTMLElement {
 
 export function unitsPanel(): HTMLElement {
   const rows = store.save!.doc.units as RecordValue[];
+  let filterNation: NationFilter = 'all';
   return listPanel({
     spec: UNIT,
     rows,
+    controls: (redraw) => h('div', { class: 'sav-list-tools' },
+      nationFilter('Nation', () => filterNation, (v) => { filterNation = v; }, redraw)),
+    include: (u) => filterNation === 'all' || ownerOfUnit(u) === filterNation,
     summary: (u) => {
-      const owner = (u.flags as number) & 0x0f;
+      const owner = ownerOfUnit(u);
       const native = owner >= 4 ? ` ${nationName(owner)}` : '';
       return `${nationEmoji(owner)} ${unitName(u)} [${u.x},${u.y}]${native}`;
     },
@@ -149,10 +182,14 @@ export function nationsPanel(): HTMLElement {
 
 export function settlementsPanel(): HTMLElement {
   const rows = store.save!.doc.settlements as RecordValue[];
+  let filterOwner: NationFilter = 'all';
   return listPanel({
     spec: SETTLEMENT,
     rows,
     empty: 'No native settlements in this save.',
+    controls: (redraw) => h('div', { class: 'sav-list-tools' },
+      nationFilter('Owner', () => filterOwner, (v) => { filterOwner = v; }, redraw)),
+    include: (s) => filterOwner === 'all' || s.owner === filterOwner,
     summary: (s) => `${nationName(s.owner as number)} (${s.size}) [${s.x},${s.y}]`,
   });
 }
@@ -165,4 +202,32 @@ export function tribesPanel(): HTMLElement {
     // Tribes are the native half of the nation index space, addressed as i - 4.
     summary: (t, i) => `${nationName(i + 4)} (lvl ${t.level}.), ${t.muskets}M, ${t.horses}H`,
   });
+}
+
+function sortPicker(
+  value: () => ColonySort,
+  set: (v: ColonySort) => void,
+  redraw: () => void,
+): HTMLElement {
+  const options: Record<ColonySort, string> = {
+    file: 'File order',
+    population: 'Population',
+    name: 'Name',
+  };
+  const sel = h('select', {
+    class: 'col-select sav-select--auto',
+    onchange: () => { set(sel.value as ColonySort); redraw(); },
+  }, ...Object.entries(options).map(([k, name]) =>
+    h('option', { value: k, selected: value() === k }, name)));
+  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'sav-label' }, 'Sort'), sel);
+}
+
+function colonyCompare(sort: ColonySort, a: ListItem, b: ListItem): number {
+  if (sort === 'name') {
+    return byText(String(a.r.name || ''), String(b.r.name || '')) || a.i - b.i;
+  }
+  if (sort === 'population') {
+    return (b.r.pop as number) - (a.r.pop as number) || byText(String(a.r.name || ''), String(b.r.name || '')) || a.i - b.i;
+  }
+  return a.i - b.i;
 }

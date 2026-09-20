@@ -119,6 +119,49 @@ describe('editing through the UI', () => {
     expect(store.save!.doc.units[0]!.flags).toBe(0x23);
   });
 
+  it('filters and sorts record lists with the tab-specific controls', async () => {
+    const { colonies, units, natives } = await panels();
+
+    const colonyRows = store.save!.doc.colonies as Array<Record<string, number | string>>;
+    if (colonyRows.length > 0) {
+      const el = colonies();
+      const [nation, sort] = [...el.querySelectorAll<HTMLSelectElement>('.sav-list-tools select')];
+      nation!.value = String(colonyRows[0]!.nation);
+      nation!.dispatchEvent(new Event('change'));
+      const colonyButtons = [...el.querySelectorAll<HTMLButtonElement>('.sav-list-item')];
+      expect(colonyButtons.length).toBeGreaterThan(0);
+      expect(colonyButtons.every((b) => colonyRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.nation === colonyRows[0]!.nation)).toBe(true);
+
+      nation!.value = 'all';
+      nation!.dispatchEvent(new Event('change'));
+      sort!.value = 'population';
+      sort!.dispatchEvent(new Event('change'));
+      const expected = colonyRows
+        .map((r, i) => ({ i, pop: r.pop as number, name: String(r.name || '') }))
+        .sort((a, b) => b.pop - a.pop || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) || a.i - b.i)[0]!.i;
+      expect(Number(el.querySelector('.sav-list-item .sav-list-i')!.textContent)).toBe(expected);
+    }
+
+    const unitRows = store.save!.doc.units as Array<Record<string, number>>;
+    const unitOwner = unitRows[0]!.flags & 0x0f;
+    const unitsEl = units();
+    const unitNation = unitsEl.querySelector<HTMLSelectElement>('.sav-list-tools select')!;
+    unitNation.value = String(unitOwner);
+    unitNation.dispatchEvent(new Event('change'));
+    expect([...unitsEl.querySelectorAll<HTMLButtonElement>('.sav-list-item')]
+      .every((b) => (unitRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.flags & 0x0f) === unitOwner)).toBe(true);
+
+    const nativeRows = store.save!.doc.settlements as Array<Record<string, number>>;
+    if (nativeRows.length > 0) {
+      const nativesEl = natives();
+      const owner = nativesEl.querySelector<HTMLSelectElement>('.sav-list-tools select')!;
+      owner.value = String(nativeRows[0]!.owner);
+      owner.dispatchEvent(new Event('change'));
+      expect([...nativesEl.querySelectorAll<HTMLButtonElement>('.sav-list-item')]
+        .every((b) => nativeRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.owner === nativeRows[0]!.owner)).toBe(true);
+    }
+  });
+
   it('a hex box refuses a wrong-length edit rather than shifting the file', async () => {
     const { raw } = await panels();
     const el = raw();
