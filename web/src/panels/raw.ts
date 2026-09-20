@@ -19,26 +19,26 @@ export function rawPanel(): HTMLElement {
     'The write number cites col-win-re docs/formats/save-file.md. Most of these have no ',
     'established meaning and are carried through untouched.'));
 
-  const table = h('div', { class: 'sav-fields' });
+  const table = h('div', { class: 'col-props' });
   for (const s of SECTIONS) {
     if (s.kind !== 'scalar' && s.kind !== 'blob') continue;
     const v = doc.state[s.key];
 
     const body = s.kind === 'scalar'
       ? h('input', {
-          type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+          type: 'number', class: 'col-input col-input--mono col-input--sm sav-input--num',
           value: String(v),
           onchange: (e: Event) => { doc.state[s.key] = Math.round(Number((e.target as HTMLInputElement).value) || 0); store.touch(); },
         })
       : hexBox(s.key, s.size);
 
-    table.appendChild(h('div', { class: 'sav-field' },
-      h('div', { class: 'sav-field-label' },
-        h('span', { class: 'sav-field-name' }, s.key),
-        h('span', { class: 'sav-meta' }, `write ${s.writes}`),
-        s.kind === 'blob' ? h('span', { class: 'sav-meta' }, `${s.size} B`) : null),
+    table.appendChild(h('div', { class: 'col-prop' },
+      h('div', { class: 'col-prop-label' },
+        h('span', { class: 'col-prop-name' }, s.key),
+        h('span', { class: 'col-meta' }, `write ${s.writes}`),
+        s.kind === 'blob' ? h('span', { class: 'col-meta' }, `${s.size} B`) : null),
       h('div', {}, body),
-      s.desc ? h('div', { class: 'sav-field-desc' }, s.desc) : null));
+      s.desc ? h('div', { class: 'col-prop-desc' }, s.desc) : null));
   }
   root.appendChild(table);
   return root;

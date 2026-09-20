@@ -34,14 +34,14 @@ function nationFilter(
   redraw: () => void,
 ): HTMLElement {
   const sel = h('select', {
-    class: 'col-select sav-select--auto',
+    class: 'col-select col-select--auto col-select--sm sav-select',
     onchange: () => { set(sel.value === 'all' ? 'all' : Number(sel.value)); redraw(); },
   }, h('option', { value: 'all', selected: value() === 'all' }, 'All'),
     ...Object.entries(NATION).map(([k, name]) => h('option', {
       value: k,
       selected: value() === Number(k),
     }, `${nationEmoji(Number(k))} ${name}`)));
-  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'sav-label' }, label), sel);
+  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'col-label col-label--inline' }, label), sel);
 }
 
 export function coloniesPanel(): HTMLElement {
@@ -63,25 +63,25 @@ export function coloniesPanel(): HTMLElement {
       return h('div', {},
         section('Colony',
           h('div', { class: 'col-row' },
-            h('span', { class: 'sav-label' }, 'Name'),
+            h('span', { class: 'col-label col-label--inline' }, 'Name'),
             h('input', {
-              type: 'text', class: 'col-input sav-input--sm sav-input--text',
+              type: 'text', class: 'col-input col-input--sm sav-input--text',
               maxLength: 24, value: String(c.name),
               onchange: (e: Event) => { c.name = (e.target as HTMLInputElement).value; store.touch(); redraw(); },
             }),
-            h('span', { class: 'sav-label' }, 'Owner'),
+            h('span', { class: 'col-label col-label--inline' }, 'Owner'),
             picker(NATION, c.nation as number, (v) => { c.nation = v; store.touch(); redraw(); }),
-            h('span', { class: 'sav-label' }, 'Population'),
+            h('span', { class: 'col-label col-label--inline' }, 'Population'),
             h('span', { class: 'col-chip' }, String(c.pop)),
-            h('span', { class: 'sav-label' }, 'At'),
+            h('span', { class: 'col-label col-label--inline' }, 'At'),
             h('span', { class: 'col-chip' }, `${c.x}, ${c.y}`),
           )),
         section('Warehouse',
-          h('div', { class: 'sav-cells' }, ...stock.map((v, i) =>
-            h('label', { class: 'sav-cell' },
+          h('div', { class: 'col-cells' }, ...stock.map((v, i) =>
+            h('label', { class: 'col-cell' },
               h('span', {}, GOODS[i] ?? String(i)),
               h('input', {
-                type: 'number', class: 'col-input col-input--mono sav-input--xs',
+                type: 'number', class: 'col-input col-input--mono col-input--xs',
                 min: 0, max: 65535, value: String(v),
                 onchange: (e: Event) => {
                   const n = Number((e.target as HTMLInputElement).value) || 0;
@@ -110,18 +110,18 @@ export function unitsPanel(): HTMLElement {
     },
     detailHead: (u, _i, redraw) => section('Unit',
       h('div', { class: 'col-row' },
-        h('span', { class: 'sav-label' }, 'Type'),
+        h('span', { class: 'col-label col-label--inline' }, 'Type'),
         h('span', { class: 'col-chip' }, unitName(u)),
-        h('span', { class: 'sav-label' }, 'Owner'),
+        h('span', { class: 'col-label col-label--inline' }, 'Owner'),
         // The owning nation is the LOW NIBBLE of the flags byte; the high nibble is a
         // separate flag set, so it has to be preserved rather than overwritten.
         picker(NATION, (u.flags as number) & 0x0f, (v) => {
           u.flags = ((u.flags as number) & 0xf0) | (v & 0x0f);
           store.touch(); redraw();
         }),
-        h('span', { class: 'sav-label' }, 'At'),
+        h('span', { class: 'col-label col-label--inline' }, 'At'),
         h('span', { class: 'col-chip' }, `${u.x}, ${u.y}`),
-        h('span', { class: 'sav-label' }, 'Orders'),
+        h('span', { class: 'col-label col-label--inline' }, 'Orders'),
         h('span', { class: 'col-chip' }, String(u.orders)),
       ),
       h('p', { class: 'col-hint' },
@@ -140,9 +140,9 @@ export function nationsPanel(): HTMLElement {
     detailHead: (n) => {
       const money = (key: string, label: string, note: string) =>
         h('label', { class: 'col-row' },
-          h('span', { class: 'sav-label sav-money-k' }, label),
+          h('span', { class: 'col-label col-label--inline sav-money-k' }, label),
           h('input', {
-            type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+            type: 'number', class: 'col-input col-input--mono col-input--sm sav-input--num',
             value: String(n[key]),
             onchange: (e: Event) => { n[key] = Math.round(Number((e.target as HTMLInputElement).value) || 0); store.touch(); },
           }),
@@ -154,21 +154,21 @@ export function nationsPanel(): HTMLElement {
           money('kingChest', "King's chest", 'his balance, not a total: he spends 1800 per soldier'),
           money('netSaleRevenue', 'Net sale revenue', 'cumulative; written every turn and never read'),
           h('div', { class: 'col-row' },
-            h('span', { class: 'sav-label' }, 'Tax %'),
+            h('span', { class: 'col-label col-label--inline' }, 'Tax %'),
             h('input', {
-              type: 'number', class: 'col-input col-input--mono sav-input--xs',
+              type: 'number', class: 'col-input col-input--mono col-input--xs',
               min: 0, max: 255, value: String(n.tax),
               onchange: (e: Event) => { n.tax = Math.min(255, Math.max(0, Math.round(Number((e.target as HTMLInputElement).value) || 0))); store.touch(); },
             }),
-            h('span', { class: 'sav-label' }, 'Bells'), h('span', { class: 'col-chip' }, String(n.bells)),
-            h('span', { class: 'sav-label' }, 'Crosses'),
+            h('span', { class: 'col-label col-label--inline' }, 'Bells'), h('span', { class: 'col-chip' }, String(n.bells)),
+            h('span', { class: 'col-label col-label--inline' }, 'Crosses'),
             h('span', { class: 'col-chip' }, `${n.crosses} of ${n.crossesNeeded}`))),
         section('Europe prices',
-          h('div', { class: 'sav-cells' }, ...prices.map((v, i) =>
-            h('label', { class: 'sav-cell' },
+          h('div', { class: 'col-cells' }, ...prices.map((v, i) =>
+            h('label', { class: 'col-cell' },
               h('span', {}, GOODS[i] ?? String(i)),
               h('input', {
-                type: 'number', class: 'col-input col-input--mono sav-input--xs',
+                type: 'number', class: 'col-input col-input--mono col-input--xs',
                 min: 0, max: 255, value: String(v),
                 onchange: (e: Event) => {
                   prices[i] = Math.min(255, Math.max(0, Math.round(Number((e.target as HTMLInputElement).value) || 0)));
@@ -215,11 +215,11 @@ function sortPicker(
     name: 'Name',
   };
   const sel = h('select', {
-    class: 'col-select sav-select--auto',
+    class: 'col-select col-select--auto col-select--sm sav-select',
     onchange: () => { set(sel.value as ColonySort); redraw(); },
   }, ...Object.entries(options).map(([k, name]) =>
     h('option', { value: k, selected: value() === k }, name)));
-  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'sav-label' }, 'Sort'), sel);
+  return h('label', { class: 'sav-list-tool' }, h('span', { class: 'col-label col-label--inline' }, 'Sort'), sel);
 }
 
 function colonyCompare(sort: ColonySort, a: ListItem, b: ListItem): number {

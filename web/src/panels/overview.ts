@@ -26,17 +26,17 @@ export function overviewPanel(): HTMLElement {
    * step itself (advance_turn: one turn a year to 1600, two after). Editing one without
    * the others makes a save the game loads and then displays inconsistently, so this
    * writes all three from a single control. */
-  const dateOut = h('span', { class: 'col-mono sav-ok' });
+  const dateOut = h('span', { class: 'col-mono col-ok' });
   const redraw = () => {
     const d = dateFromTurn(g.turnCounter!);
     const agrees = d.year === g.year && d.season === g.season;
     dateOut.textContent = `turn ${g.turnCounter} = ${d.year} ${d.season === 0 ? 'spring' : 'autumn'}`;
-    dateOut.className = `col-mono ${agrees ? 'sav-ok' : 'sav-warn'}`;
+    dateOut.className = `col-mono ${agrees ? 'col-ok' : 'col-warn'}`;
     if (!agrees) dateOut.textContent += `  (file says year ${g.year}, season ${g.season})`;
   };
 
   const turn = h('input', {
-    type: 'number', class: 'col-input col-input--mono sav-input--sm sav-input--num',
+    type: 'number', class: 'col-input col-input--mono col-input--sm sav-input--num',
     min: 0, max: 65535, value: String(g.turnCounter),
     onchange: () => {
       const t = Math.max(0, Math.round(Number(turn.value) || 0));
@@ -49,7 +49,7 @@ export function overviewPanel(): HTMLElement {
   redraw();
 
   root.appendChild(section('Date',
-    h('div', { class: 'col-row' }, h('span', { class: 'sav-label' }, 'Turn'), turn, dateOut),
+    h('div', { class: 'col-row' }, h('span', { class: 'col-label col-label--inline' }, 'Turn'), turn, dateOut),
     h('details', { class: 'sav-inline-disclosure' },
       h('summary', {}, 'How the date is stored'),
       h('p', { class: 'col-hint' },
@@ -60,9 +60,9 @@ export function overviewPanel(): HTMLElement {
 
   root.appendChild(section('Game',
     h('div', { class: 'col-row' },
-      h('span', { class: 'sav-label' }, 'You play'),
+      h('span', { class: 'col-label col-label--inline' }, 'You play'),
       picker(NATION, g.playerNation!, (v) => { g.playerNation = v; touch(); }, nationOption),
-      h('span', { class: 'sav-label' }, 'Difficulty'),
+      h('span', { class: 'col-label col-label--inline' }, 'Difficulty'),
       picker(DIFFICULTY, g.difficulty!, (v) => { g.difficulty = v; touch(); }),
     ),
     h('details', { class: 'sav-inline-disclosure' },
@@ -77,13 +77,13 @@ export function overviewPanel(): HTMLElement {
               touch();
             },
           }),
-          h('span', {}, name, ' ', h('span', { class: 'sav-meta' }, `0x${mask.toString(16)}`))))),
+          h('span', {}, name, ' ', h('span', { class: 'col-meta' }, `0x${mask.toString(16)}`))))),
       h('p', { class: 'col-hint' },
         'Only the bits col-win-re has named are shown. The word is masked with several others ',
         'that nothing establishes the meaning of; edit those in the full field list below.')),
   ));
 
-  const full = h('details', { class: 'sav-disclosure' },
+  const full = h('details', { class: 'col-disclosure sav-disclosure' },
     h('summary', {}, 'All 142 bytes of the globals block'),
     h('p', { class: 'col-hint' },
       'A raw dump of SEG20:0x7782, so every global the reconstruction has named in that ',
@@ -102,7 +102,7 @@ export function overviewPanel(): HTMLElement {
 function stat(k: string, v: string, text: boolean, note: string): HTMLElement {
   return h('div', { class: 'col-tile' },
     h('div', { class: 'col-tile-k' }, k),
-    h('div', { class: `col-tile-v${text ? ' sav-tile-v--text' : ''}` }, v),
+    h('div', { class: `col-tile-v${text ? ' col-tile-v--text' : ''}` }, v),
     h('div', { class: 'col-tile-d' }, note));
 }
 
@@ -127,7 +127,7 @@ export function picker(
   set: (v: number) => void,
   label: (k: number, name: string) => string = (k, name) => `${k} - ${name}`,
 ): HTMLSelectElement {
-  const sel = h('select', { class: 'col-select sav-select--auto', onchange: () => set(Number(sel.value)) },
+  const sel = h('select', { class: 'col-select col-select--auto col-select--sm sav-select', onchange: () => set(Number(sel.value)) },
     ...Object.entries(table).map(([k, name]) =>
       h('option', { value: k, selected: Number(k) === value }, label(Number(k), name))));
   if (!(value in table)) sel.appendChild(h('option', { value: String(value), selected: true }, `${value} - (not in table)`));

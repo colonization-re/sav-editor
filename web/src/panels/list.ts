@@ -48,10 +48,10 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
   const redrawAll = () => { renderList(); renderDetail(); };
   const controls = o.controls?.(redrawAll);
   const filter = h('input', {
-    type: 'search', class: 'col-input sav-input--sm',
+    type: 'search', class: 'col-input col-input--sm',
     placeholder: `Filter ${o.rows.length}...`, oninput: redrawAll,
   });
-  const rows = h('div', { class: 'sav-list-rows' });
+  const rows = h('div', { class: 'col-list' });
   if (controls) list.appendChild(controls);
   if (useFilter) list.appendChild(filter);
   list.appendChild(rows);
@@ -79,9 +79,10 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
     if (!items.some((item) => item.i === selected)) selected = items[0]!.i;
     items.forEach(({ i, text }) => {
       rows.appendChild(h('button', {
-        class: `sav-list-item${i === selected ? ' is-active' : ''}`,
+        class: `col-list-item${i === selected ? ' is-active' : ''}`,
+        'aria-selected': String(i === selected),
         onclick: () => { selected = i; redrawAll(); },
-      }, h('span', { class: 'sav-list-i' }, String(i)), text));
+      }, h('span', { class: 'col-list-i' }, String(i)), text));
     });
   };
 
@@ -94,7 +95,7 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
     const r = o.rows[selected]!;
     const head = o.detailHead?.(r, selected, () => { renderList(); renderDetail(); });
     if (head) detail.appendChild(head);
-    detail.appendChild(h('details', { class: 'sav-disclosure', open: !head },
+    detail.appendChild(h('details', { class: 'col-disclosure sav-disclosure', open: !head },
       h('summary', {}, `All ${o.spec.size} bytes of ${o.spec.name} #${selected}`),
       recordEditor(o.spec, r, {
         onChange: () => { store.touch(); redrawAll(); },

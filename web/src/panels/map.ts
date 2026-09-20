@@ -107,11 +107,11 @@ export function mapPanel(): HTMLElement {
     const t = decodeTerrain(planes[0][i]!);
 
     info.appendChild(h('h3', { class: 'col-row' }, `Square ${x}, ${y}`,
-      h('span', { class: 'sav-meta' }, `index ${i}`)));
+      h('span', { class: 'col-meta' }, `index ${i}`)));
 
     // ---- plane 0
     const terr = h('select', {
-      class: 'col-select sav-select--auto',
+      class: 'col-select col-select--auto col-select--sm sav-select',
       onchange: () => {
         const base = Number(terr.value);
         // Hills and mountains are a BIT, not an id: 27 and 28 are never stored in the
@@ -195,14 +195,14 @@ export function mapPanel(): HTMLElement {
   nationSel.style.display = 'none';
 
   const zoom = h('input', {
-    type: 'range', class: 'sav-range', min: 4, max: 20, step: 1, value: String(scale),
+    type: 'range', class: 'col-range', min: 4, max: 20, step: 1, value: String(scale),
     oninput: () => { scale = Number(zoom.value); draw(); },
   });
 
   /* The reveal-map action. reveal_around_colony is what the game uses; this is the same
    * bit, set everywhere at once. It is the single most-requested save edit there is. */
   const reveal = h('button', {
-    class: 'col-btn col-btn--outline col-btn--sm',
+    class: 'col-btn col-btn--ghost col-btn--sm',
     onclick: () => {
       const n = exploredNation;
       if (!confirm(`Mark every square explored by ${NATION[n]}? This sets one bit per square in plane 3.`)) return;
@@ -216,7 +216,7 @@ export function mapPanel(): HTMLElement {
 
   return h('div', { class: 'sav-panel sav-panel--full sav-map sav-viewport' },
     h('div', { class: 'sav-map-bar' }, viewBtns, nationSel, h('span', { class: 'col-push' }),
-      h('label', { class: 'col-row sav-label' }, 'zoom', zoom), reveal),
+      h('label', { class: 'col-row col-label col-label--inline' }, 'zoom', zoom), reveal),
     h('div', { class: 'sav-map-split' },
       h('div', { class: 'sav-map-wrap' }, canvas),
       h('div', { class: 'sav-map-side' }, info)),

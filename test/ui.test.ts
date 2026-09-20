@@ -65,13 +65,13 @@ describe.each(['AUTO01.SAV', '_DECLARE.SAV'])('panels against %s', (file) => {
     const { colonies, units, nations } = await panels();
     const doc = store.save!.doc;
     if (doc.colonies.length > 0) {
-      const names = [...colonies().querySelectorAll('.sav-field-name')].map((e) => e.textContent);
+      const names = [...colonies().querySelectorAll('.col-prop-name')].map((e) => e.textContent);
       // Unknown fields are shown, not hidden: that is the point of the panel.
       expect(names).toContain('bells');
       expect(names).toContain('f1d');
     }
-    expect([...units().querySelectorAll('.sav-field-name')].map((e) => e.textContent)).toContain('cargoCount');
-    expect([...nations().querySelectorAll('.sav-field-name')].map((e) => e.textContent)).toContain('gold');
+    expect([...units().querySelectorAll('.col-prop-name')].map((e) => e.textContent)).toContain('cargoCount');
+    expect([...nations().querySelectorAll('.col-prop-name')].map((e) => e.textContent)).toContain('gold');
   });
 
   it('survives driving every input, and still serializes', async () => {
@@ -128,9 +128,9 @@ describe('editing through the UI', () => {
       const [nation, sort] = [...el.querySelectorAll<HTMLSelectElement>('.sav-list-tools select')];
       nation!.value = String(colonyRows[0]!.nation);
       nation!.dispatchEvent(new Event('change'));
-      const colonyButtons = [...el.querySelectorAll<HTMLButtonElement>('.sav-list-item')];
+      const colonyButtons = [...el.querySelectorAll<HTMLButtonElement>('.col-list-item')];
       expect(colonyButtons.length).toBeGreaterThan(0);
-      expect(colonyButtons.every((b) => colonyRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.nation === colonyRows[0]!.nation)).toBe(true);
+      expect(colonyButtons.every((b) => colonyRows[Number(b.querySelector('.col-list-i')!.textContent)]!.nation === colonyRows[0]!.nation)).toBe(true);
 
       nation!.value = 'all';
       nation!.dispatchEvent(new Event('change'));
@@ -139,7 +139,7 @@ describe('editing through the UI', () => {
       const expected = colonyRows
         .map((r, i) => ({ i, pop: r.pop as number, name: String(r.name || '') }))
         .sort((a, b) => b.pop - a.pop || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) || a.i - b.i)[0]!.i;
-      expect(Number(el.querySelector('.sav-list-item .sav-list-i')!.textContent)).toBe(expected);
+      expect(Number(el.querySelector('.col-list-item .col-list-i')!.textContent)).toBe(expected);
     }
 
     const unitRows = store.save!.doc.units as Array<Record<string, number>>;
@@ -148,8 +148,8 @@ describe('editing through the UI', () => {
     const unitNation = unitsEl.querySelector<HTMLSelectElement>('.sav-list-tools select')!;
     unitNation.value = String(unitOwner);
     unitNation.dispatchEvent(new Event('change'));
-    expect([...unitsEl.querySelectorAll<HTMLButtonElement>('.sav-list-item')]
-      .every((b) => (unitRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.flags & 0x0f) === unitOwner)).toBe(true);
+    expect([...unitsEl.querySelectorAll<HTMLButtonElement>('.col-list-item')]
+      .every((b) => (unitRows[Number(b.querySelector('.col-list-i')!.textContent)]!.flags & 0x0f) === unitOwner)).toBe(true);
 
     const nativeRows = store.save!.doc.settlements as Array<Record<string, number>>;
     if (nativeRows.length > 0) {
@@ -157,8 +157,8 @@ describe('editing through the UI', () => {
       const owner = nativesEl.querySelector<HTMLSelectElement>('.sav-list-tools select')!;
       owner.value = String(nativeRows[0]!.owner);
       owner.dispatchEvent(new Event('change'));
-      expect([...nativesEl.querySelectorAll<HTMLButtonElement>('.sav-list-item')]
-        .every((b) => nativeRows[Number(b.querySelector('.sav-list-i')!.textContent)]!.owner === nativeRows[0]!.owner)).toBe(true);
+      expect([...nativesEl.querySelectorAll<HTMLButtonElement>('.col-list-item')]
+        .every((b) => nativeRows[Number(b.querySelector('.col-list-i')!.textContent)]!.owner === nativeRows[0]!.owner)).toBe(true);
     }
   });
 

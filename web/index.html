@@ -1,11 +1,9 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Colonization savegame editor</title>
-<!-- Dark by default: this is a tool, used next to a DOS-era game window. Remove the
-     data-theme attribute on <html> to follow the system setting instead. -->
 <!--STYLE--><link rel="stylesheet" href="vendor/col.css"><link rel="stylesheet" href="app.css"><!--/STYLE-->
 </head>
 <body>
@@ -13,11 +11,11 @@
   <header class="col-bar">
     <div class="col-bar-in sav-bar-in">
       <span class="col-brand"><span class="col-brand-mark"></span>Colonization <span class="col-dim">savegame editor</span></span>
-      <label class="col-btn col-btn--outline col-btn--sm sav-filebtn">Open .SAV<input id="file" type="file" accept=".sav,.SAV"></label>
+      <label class="col-btn col-btn--ghost col-btn--sm col-btn--file">Open .SAV<input id="file" type="file" accept=".sav,.SAV"></label>
       <span class="col-push"></span>
       <button id="revert" class="col-btn col-btn--quiet col-btn--sm" disabled>Revert</button>
       <button id="json" class="col-btn col-btn--ghost col-btn--sm" disabled>Export JSON</button>
-      <button id="save" class="col-btn col-btn--sm" disabled>Download .SAV</button>
+      <button id="save" class="col-btn col-btn--ghost col-btn--sm" disabled>Download .SAV</button>
     </div>
   </header>
   <div id="status" class="sav-status"></div>
