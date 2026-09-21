@@ -3,6 +3,7 @@ import { COLONY, NATION_REC, SETTLEMENT, TRIBE, UNIT } from '../../../src/format
 import { GOODS, NATION, PROFESSION, UNIT_TYPE } from '../../../src/format/enums.js';
 import { store } from '../state.js';
 import { h } from '../dom.js';
+import { colonyFortLevel, colonyIcon, goodsIcon, iconImg, settlementIcon, unitIcon } from '../icons.js';
 import { listPanel, type ListItem } from './list.js';
 import { picker, section } from './overview.js';
 import type { RecordValue } from '../fields.js';
@@ -25,7 +26,22 @@ const unitName = (u: RecordValue) => {
   if (type === 0 && spec in PROFESSION) return PROFESSION[spec]!;
   return UNIT_TYPE[type] ?? `unit ${type}`;
 };
+const tribeLevel = (s: RecordValue, tribes: RecordValue[]) => {
+  const owner = Number(s.owner);
+  const tribe = Number.isFinite(owner) ? tribes[Math.trunc(owner) - 4] : undefined;
+  const level = Number(tribe?.level);
+  return Number.isFinite(level) ? Math.max(0, Math.min(3, Math.trunc(level))) : '?';
+};
 const byText = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+function namedIcon(icon: ReturnType<typeof goodsIcon>, text: string): HTMLElement {
+  return h('span', { class: 'sav-icon-label' }, iconImg(icon), h('span', {}, text));
+}
+
+function recordHead(title: string, icon: ReturnType<typeof goodsIcon>, meta: string): HTMLElement {
+  return h('div', { class: 'sav-record-head' }, iconImg(icon, 'sav-icon sav-icon--lg'),
+    h('div', {}, h('h3', {}, title), h('p', { class: 'col-meta' }, meta)));
+}
 
 function nationFilter(
   label: string,
@@ -57,10 +73,12 @@ export function coloniesPanel(): HTMLElement {
       sortPicker(() => sort, (v) => { sort = v; }, redraw)),
     include: (c) => filterNation === 'all' || c.nation === filterNation,
     sort: (a, b) => colonyCompare(sort, a, b),
+    icon: (c) => iconImg(colonyIcon(c)),
     summary: (c) => `${nationEmoji(c.nation as number)} ${c.name || '(unnamed)'} (${c.pop})`,
     detailHead: (c, _i, redraw) => {
       const stock = c.stock as number[];
       return h('div', {},
+        recordHead(String(c.name || '(unnamed colony)'), colonyIcon(c), `${nationName(c.nation as number)} - ${c.pop} colonists - ${['open colony', 'stockade', 'fort', 'fortress'][colonyFortLevel(c)]}`),
         section('Colony',
           h('div', { class: 'col-row' },
             h('span', { class: 'col-label col-label--inline' }, 'Name'),
@@ -79,7 +97,7 @@ export function coloniesPanel(): HTMLElement {
         section('Warehouse',
           h('div', { class: 'col-cells' }, ...stock.map((v, i) =>
             h('label', { class: 'col-cell' },
-              h('span', {}, GOODS[i] ?? String(i)),
+              namedIcon(goodsIcon(i), GOODS[i] ?? String(i)),
               h('input', {
                 type: 'number', class: 'col-input col-input--mono col-input--xs',
                 min: 0, max: 65535, value: String(v),
@@ -103,12 +121,15 @@ export function unitsPanel(): HTMLElement {
     controls: (redraw) => h('div', { class: 'sav-list-tools' },
       nationFilter('Nation', () => filterNation, (v) => { filterNation = v; }, redraw)),
     include: (u) => filterNation === 'all' || ownerOfUnit(u) === filterNation,
+    icon: (u) => iconImg(unitIcon(u.type as number, u.spec as number)),
     summary: (u) => {
       const owner = ownerOfUnit(u);
       const native = owner >= 4 ? ` ${nationName(owner)}` : '';
       return `${nationEmoji(owner)} ${unitName(u)} [${u.x},${u.y}]${native}`;
     },
-    detailHead: (u, _i, redraw) => section('Unit',
+    detailHead: (u, _i, redraw) => h('div', {},
+      recordHead(unitName(u), unitIcon(u.type as number, u.spec as number), `${nationName(ownerOfUnit(u))} - ${u.x}, ${u.y}`),
+      section('Unit',
       h('div', { class: 'col-row' },
         h('span', { class: 'col-label col-label--inline' }, 'Type'),
         h('span', { class: 'col-chip' }, unitName(u)),
@@ -126,7 +147,7 @@ export function unitsPanel(): HTMLElement {
       ),
       h('p', { class: 'col-hint' },
         'The owner lives in the low nibble of ', h('code', {}, 'flags'), '; the high nibble is a ',
-        'separate flag set and is preserved when you change the owner here.')),
+        'separate flag set and is preserved when you change the owner here.'))),
   });
 }
 
@@ -166,7 +187,7 @@ export function nationsPanel(): HTMLElement {
         section('Europe prices',
           h('div', { class: 'col-cells' }, ...prices.map((v, i) =>
             h('label', { class: 'col-cell' },
-              h('span', {}, GOODS[i] ?? String(i)),
+              namedIcon(goodsIcon(i), GOODS[i] ?? String(i)),
               h('input', {
                 type: 'number', class: 'col-input col-input--mono col-input--xs',
                 min: 0, max: 255, value: String(v),
@@ -182,6 +203,7 @@ export function nationsPanel(): HTMLElement {
 
 export function settlementsPanel(): HTMLElement {
   const rows = store.save!.doc.settlements as RecordValue[];
+  const tribes = store.save!.doc.tribes as RecordValue[];
   let filterOwner: NationFilter = 'all';
   return listPanel({
     spec: SETTLEMENT,
@@ -190,7 +212,9 @@ export function settlementsPanel(): HTMLElement {
     controls: (redraw) => h('div', { class: 'sav-list-tools' },
       nationFilter('Owner', () => filterOwner, (v) => { filterOwner = v; }, redraw)),
     include: (s) => filterOwner === 'all' || s.owner === filterOwner,
+    icon: (s) => iconImg(settlementIcon(s, tribes)),
     summary: (s) => `${nationName(s.owner as number)} (${s.size}) [${s.x},${s.y}]`,
+    detailHead: (s) => recordHead(`${nationName(s.owner as number)} settlement`, settlementIcon(s, tribes), `level ${tribeLevel(s, tribes)} - size ${s.size} - ${s.x}, ${s.y}`),
   });
 }
 

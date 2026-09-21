@@ -11,6 +11,7 @@ import {
   setSquareNation, squareNation, terrainColour, terrainName, TERRAIN_FULL,
 } from '../../../src/format/map.js';
 import { NATION } from '../../../src/format/enums.js';
+import { colonyIcon, mapIconImage, settlementIcon } from '../icons.js';
 import { fromB64, toB64 } from '../fields.js';
 import { clear, h, hex } from '../dom.js';
 import { store } from '../state.js';
@@ -79,14 +80,12 @@ export function mapPanel(): HTMLElement {
       }
     }
 
-    // Colonies, always. They are the landmark that makes the map legible.
-    for (const c of doc.colonies as Array<Record<string, number>>) {
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#12161d';
-      ctx.lineWidth = 1;
-      const px = c.x! * scale, py = c.y! * scale;
-      ctx.fillRect(px, py, scale, scale);
-      ctx.strokeRect(px + 0.5, py + 0.5, scale - 1, scale - 1);
+    // Colonies and native settlements, always. They are the landmarks that make the map legible.
+    for (const c of doc.colonies as Array<Record<string, unknown>>) {
+      drawMapIcon(ctx, colonyIcon(c), Number(c.x), Number(c.y), scale, draw);
+    }
+    for (const s of doc.settlements as Array<Record<string, unknown>>) {
+      drawMapIcon(ctx, settlementIcon(s, doc.tribes as Array<Record<string, unknown>>), Number(s.x), Number(s.y), scale, draw);
     }
 
     if (sel) {
@@ -108,6 +107,19 @@ export function mapPanel(): HTMLElement {
 
     info.appendChild(h('h3', { class: 'col-row' }, `Square ${x}, ${y}`,
       h('span', { class: 'col-meta' }, `index ${i}`)));
+
+
+    const coloniesHere = (doc.colonies as Array<Record<string, unknown>>).filter((c) => Number(c.x) === x && Number(c.y) === y);
+    const settlementsHere = (doc.settlements as Array<Record<string, unknown>>).filter((s) => Number(s.x) === x && Number(s.y) === y);
+    if (coloniesHere.length || settlementsHere.length) {
+      info.appendChild(section('Landmarks',
+        h('div', { class: 'sav-landmarks' },
+          ...coloniesHere.map((c) => h('div', { class: 'sav-landmark' }, iconNode(colonyIcon(c)),
+            h('span', {}, String(c.name || 'Colony')), h('span', { class: 'col-meta' }, `${NATION[Number(c.nation)] ?? 'nation'} - pop ${c.pop}`))),
+          ...settlementsHere.map((s) => h('div', { class: 'sav-landmark' }, iconNode(settlementIcon(s, doc.tribes as Array<Record<string, unknown>>)),
+            h('span', {}, `${NATION[Number(s.owner)] ?? 'Native'} settlement`), h('span', { class: 'col-meta' }, `level ${settlementLevel(s, doc.tribes as Array<Record<string, unknown>>)} - size ${s.size}`))),
+        )));
+    }
 
     // ---- plane 0
     const terr = h('select', {
@@ -228,6 +240,45 @@ const NATION_TINT: Record<number, string> = {
   4: 'rgba(160,110,200,.5)', 5: 'rgba(200,110,160,.5)', 6: 'rgba(110,190,180,.5)', 7: 'rgba(150,170,90,.5)',
   8: 'rgba(190,150,110,.5)', 9: 'rgba(120,150,200,.5)', 10: 'rgba(200,170,200,.5)', 11: 'rgba(140,200,140,.5)',
 };
+
+function settlementLevel(settlement: Record<string, unknown>, tribes: Array<Record<string, unknown>>): number | string {
+  const owner = Number(settlement.owner);
+  const tribe = Number.isFinite(owner) ? tribes[Math.trunc(owner) - 4] : undefined;
+  const level = Number(tribe?.level);
+  return Number.isFinite(level) ? Math.max(0, Math.min(3, Math.trunc(level))) : '?';
+}
+
+function drawMapIcon(
+  ctx: CanvasRenderingContext2D,
+  icon: Parameters<typeof mapIconImage>[0],
+  x: number,
+  y: number,
+  scale: number,
+  redraw: () => void,
+): void {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  const img = mapIconImage(icon);
+  const px = x * scale;
+  const py = y * scale;
+  if (img?.complete && img.naturalWidth) {
+    const w = Math.max(scale, Math.round(scale * 1.8));
+    const h = Math.max(scale, Math.round(w * img.naturalHeight / img.naturalWidth));
+    ctx.drawImage(img, px + (scale - w) / 2, py + scale - h, w, h);
+    return;
+  }
+  if (img) img.onload = redraw;
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#12161d';
+  ctx.lineWidth = 1;
+  ctx.fillRect(px, py, scale, scale);
+  ctx.strokeRect(px + 0.5, py + 0.5, scale - 1, scale - 1);
+}
+
+function iconNode(icon: Parameters<typeof mapIconImage>[0]): HTMLElement | null {
+  if (!icon) return null;
+  const img = mapIconImage(icon);
+  return h('img', { class: 'sav-icon', src: img?.src ?? icon.src, alt: '', title: icon.label });
+}
 
 function dot(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, colour: string, small = false): void {
   ctx.fillStyle = colour;

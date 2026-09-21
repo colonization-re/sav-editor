@@ -15,6 +15,8 @@ export interface ListPanelOptions {
   rows: RecordValue[];
   /** One line per row in the list. */
   summary: (r: RecordValue, i: number) => string;
+  /** Optional visual marker shown before the record index. */
+  icon?: (r: RecordValue, i: number) => Node | null;
   /** Optional controls above the text filter. */
   controls?: (redraw: () => void) => Node | null;
   include?: (r: RecordValue, i: number) => boolean;
@@ -77,12 +79,12 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
       return;
     }
     if (!items.some((item) => item.i === selected)) selected = items[0]!.i;
-    items.forEach(({ i, text }) => {
+    items.forEach(({ r, i, text }) => {
       rows.appendChild(h('button', {
         class: `col-list-item${i === selected ? ' is-active' : ''}`,
         'aria-selected': String(i === selected),
         onclick: () => { selected = i; redrawAll(); },
-      }, h('span', { class: 'col-list-i' }, String(i)), text));
+      }, o.icon?.(r, i), h('span', { class: 'col-list-i' }, String(i)), h('span', { class: 'sav-list-text' }, text)));
     });
   };
 

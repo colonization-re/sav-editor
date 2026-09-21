@@ -111,3 +111,21 @@
   .sav-list{border-right:0;border-bottom:1px solid var(--border);max-height:240px}
   .sav-map-side{border-left:0;border-top:1px solid var(--border)}
 }
+
+
+/* ---- sprite icons ---- */
+.sav-icon{
+  width:28px;height:28px;object-fit:contain;image-rendering:pixelated;
+  flex:0 0 auto;vertical-align:middle;
+}
+.sav-icon--lg{width:44px;height:44px}
+.sav-icon-label{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.sav-icon-label .sav-icon{width:22px;height:22px}
+.col-list-item{display:flex;align-items:center;gap:8px;text-align:left}
+.col-list-item .sav-icon{width:30px;height:30px;margin:-3px 0}
+.sav-list-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sav-record-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sav-record-head h3{margin:0;font-size:18px;letter-spacing:0}
+.sav-record-head p{margin:2px 0 0}
+.sav-landmarks{display:flex;flex-direction:column;gap:8px}
+.sav-landmark{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:8px}
