@@ -162,6 +162,22 @@ describe('editing through the UI', () => {
     }
   });
 
+  it('selecting an offscreen list item does not rebuild or scroll the list', async () => {
+    const { units } = await panels();
+    const el = units();
+    const list = el.querySelector<HTMLElement>('.sav-list')!;
+    const rows = el.querySelector<HTMLElement>('.col-list')!;
+    const target = [...el.querySelectorAll<HTMLButtonElement>('.col-list-item')][10]!;
+
+    list.scrollTop = 120;
+    target.click();
+
+    expect(el.querySelector<HTMLElement>('.col-list')).toBe(rows);
+    expect(list.scrollTop).toBe(120);
+    expect(target.classList.contains('is-active')).toBe(true);
+    expect(target.getAttribute('aria-selected')).toBe('true');
+  });
+
   it('a hex box refuses a wrong-length edit rather than shifting the file', async () => {
     const { raw } = await panels();
     const el = raw();

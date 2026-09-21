@@ -58,6 +58,21 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
   if (useFilter) list.appendChild(filter);
   list.appendChild(rows);
 
+  const markSelected = () => {
+    for (const b of rows.querySelectorAll<HTMLButtonElement>('.col-list-item')) {
+      const active = Number(b.dataset.i) === selected;
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-selected', String(active));
+    }
+  };
+
+  const selectRow = (i: number) => {
+    if (i === selected) return;
+    selected = i;
+    markSelected();
+    renderDetail();
+  };
+
   const visibleRows = (): ListItem[] => {
     const q = useFilter ? filter.value.trim().toLowerCase() : '';
     const items: ListItem[] = [];
@@ -81,9 +96,11 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
     if (!items.some((item) => item.i === selected)) selected = items[0]!.i;
     items.forEach(({ r, i, text }) => {
       rows.appendChild(h('button', {
+        type: 'button',
         class: `col-list-item${i === selected ? ' is-active' : ''}`,
+        'data-i': String(i),
         'aria-selected': String(i === selected),
-        onclick: () => { selected = i; redrawAll(); },
+        onclick: () => { selectRow(i); },
       }, o.icon?.(r, i), h('span', { class: 'col-list-i' }, String(i)), h('span', { class: 'sav-list-text' }, text)));
     });
   };
