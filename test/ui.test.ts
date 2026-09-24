@@ -15,6 +15,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse, serialize } from '../src/codec/savegame.js';
+import { colonyIcon } from '../web/src/icons.js';
 import { store } from '../web/src/state.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -117,6 +118,23 @@ describe('editing through the UI', () => {
     sel.value = '3';
     sel.dispatchEvent(new Event('change'));
     expect(store.save!.doc.units[0]!.flags).toBe(0x23);
+  });
+
+  it('uses the colony owner to choose nation-specific colony icons', async () => {
+    const { colonies } = await panels();
+    const c = store.save!.doc.colonies[0] as Record<string, unknown>;
+
+    expect([0, 1, 2, 3].map((nation) => colonyIcon({ ...c, nation })?.label)).toEqual([
+      'English Colony',
+      'France Colony',
+      'Spain Colony',
+      'Netherlands Colony',
+    ]);
+
+    c.nation = 2;
+    const el = colonies();
+    expect(el.querySelector<HTMLImageElement>('.col-list-item img.sav-icon')?.title).toBe('Spain Colony');
+    expect(el.querySelector<HTMLImageElement>('.sav-record-head img.sav-icon')?.title).toBe('Spain Colony');
   });
 
   it('filters and sorts record lists with the tab-specific controls', async () => {

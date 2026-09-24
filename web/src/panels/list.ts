@@ -26,6 +26,7 @@ export interface ListPanelOptions {
   empty?: string;
   filter?: boolean;
   readOnly?: ReadonlySet<string>;
+  showIndex?: boolean;
 }
 
 export interface ListItem {
@@ -101,7 +102,9 @@ export function listPanel(o: ListPanelOptions): HTMLElement {
         'data-i': String(i),
         'aria-selected': String(i === selected),
         onclick: () => { selectRow(i); },
-      }, o.icon?.(r, i), h('span', { class: 'col-list-i' }, String(i)), h('span', { class: 'sav-list-text' }, text)));
+      }, o.icon?.(r, i),
+        h('span', { class: `col-list-i${o.showIndex === false ? ' sav-list-index-hidden' : ''}` }, String(i)),
+        h('span', { class: 'sav-list-text' }, text)));
     });
   };
 

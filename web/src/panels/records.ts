@@ -38,6 +38,30 @@ function namedIcon(icon: ReturnType<typeof goodsIcon>, text: string): HTMLElemen
   return h('span', { class: 'sav-icon-label' }, iconImg(icon), h('span', {}, text));
 }
 
+function resourceInput(
+  value: number,
+  resource: number,
+  max: number,
+  onChange: (value: number) => void,
+): HTMLElement {
+  const name = GOODS[resource] ?? `Resource ${resource}`;
+  return h('label', { class: 'col-cell sav-resource-cell', title: name },
+    h('span', { class: 'sav-icon-input' },
+      iconImg(goodsIcon(resource), 'sav-resource-prefix'),
+      h('input', {
+        type: 'number',
+        class: 'col-input col-input--mono col-input--xs sav-resource-input',
+        min: 0,
+        max,
+        value: String(value),
+        'aria-label': name,
+        onchange: (e: Event) => {
+          const n = Number((e.target as HTMLInputElement).value) || 0;
+          onChange(Math.min(max, Math.max(0, Math.round(n))));
+        },
+      })));
+}
+
 function recordHead(title: string, icon: ReturnType<typeof goodsIcon>, meta: string): HTMLElement {
   return h('div', { class: 'sav-record-head' }, iconImg(icon, 'sav-icon sav-icon--lg'),
     h('div', {}, h('h3', {}, title), h('p', { class: 'col-meta' }, meta)));
@@ -74,13 +98,16 @@ export function coloniesPanel(): HTMLElement {
     include: (c) => filterNation === 'all' || c.nation === filterNation,
     sort: (a, b) => colonyCompare(sort, a, b),
     icon: (c) => iconImg(colonyIcon(c)),
-    summary: (c) => `${nationEmoji(c.nation as number)} ${c.name || '(unnamed)'} (${c.pop})`,
-    detailHead: (c, _i, redraw) => {
+    showIndex: false,
+    summary: (c) => `${c.name || '(unnamed)'} (${c.pop})`,
+    detailHead: (c, i, redraw) => {
       const stock = c.stock as number[];
       return h('div', {},
         recordHead(String(c.name || '(unnamed colony)'), colonyIcon(c), `${nationName(c.nation as number)} - ${c.pop} colonists - ${['open colony', 'stockade', 'fort', 'fortress'][colonyFortLevel(c)]}`),
         section('Colony',
           h('div', { class: 'col-row' },
+            h('span', { class: 'col-label col-label--inline' }, 'ID'),
+            h('span', { class: 'col-chip' }, String(i)),
             h('span', { class: 'col-label col-label--inline' }, 'Name'),
             h('input', {
               type: 'text', class: 'col-input col-input--sm sav-input--text',
@@ -96,17 +123,10 @@ export function coloniesPanel(): HTMLElement {
           )),
         section('Warehouse',
           h('div', { class: 'col-cells' }, ...stock.map((v, i) =>
-            h('label', { class: 'col-cell' },
-              namedIcon(goodsIcon(i), GOODS[i] ?? String(i)),
-              h('input', {
-                type: 'number', class: 'col-input col-input--mono col-input--xs',
-                min: 0, max: 65535, value: String(v),
-                onchange: (e: Event) => {
-                  const n = Number((e.target as HTMLInputElement).value) || 0;
-                  stock[i] = Math.min(65535, Math.max(0, Math.round(n)));
-                  store.touch();
-                },
-              }))))),
+            resourceInput(v, i, 65535, (next) => {
+              stock[i] = next;
+              store.touch();
+            })))),
       );
     },
   });
@@ -122,15 +142,18 @@ export function unitsPanel(): HTMLElement {
       nationFilter('Nation', () => filterNation, (v) => { filterNation = v; }, redraw)),
     include: (u) => filterNation === 'all' || ownerOfUnit(u) === filterNation,
     icon: (u) => iconImg(unitIcon(u.type as number, u.spec as number)),
+    showIndex: false,
     summary: (u) => {
       const owner = ownerOfUnit(u);
       const native = owner >= 4 ? ` ${nationName(owner)}` : '';
       return `${nationEmoji(owner)} ${unitName(u)} [${u.x},${u.y}]${native}`;
     },
-    detailHead: (u, _i, redraw) => h('div', {},
+    detailHead: (u, i, redraw) => h('div', {},
       recordHead(unitName(u), unitIcon(u.type as number, u.spec as number), `${nationName(ownerOfUnit(u))} - ${u.x}, ${u.y}`),
       section('Unit',
       h('div', { class: 'col-row' },
+        h('span', { class: 'col-label col-label--inline' }, 'ID'),
+        h('span', { class: 'col-chip' }, String(i)),
         h('span', { class: 'col-label col-label--inline' }, 'Type'),
         h('span', { class: 'col-chip' }, unitName(u)),
         h('span', { class: 'col-label col-label--inline' }, 'Owner'),
@@ -186,16 +209,10 @@ export function nationsPanel(): HTMLElement {
             h('span', { class: 'col-chip' }, `${n.crosses} of ${n.crossesNeeded}`))),
         section('Europe prices',
           h('div', { class: 'col-cells' }, ...prices.map((v, i) =>
-            h('label', { class: 'col-cell' },
-              namedIcon(goodsIcon(i), GOODS[i] ?? String(i)),
-              h('input', {
-                type: 'number', class: 'col-input col-input--mono col-input--xs',
-                min: 0, max: 255, value: String(v),
-                onchange: (e: Event) => {
-                  prices[i] = Math.min(255, Math.max(0, Math.round(Number((e.target as HTMLInputElement).value) || 0)));
-                  store.touch();
-                },
-              }))))),
+            resourceInput(v, i, 255, (next) => {
+              prices[i] = next;
+              store.touch();
+            })))),
       );
     },
   });
@@ -213,8 +230,20 @@ export function settlementsPanel(): HTMLElement {
       nationFilter('Owner', () => filterOwner, (v) => { filterOwner = v; }, redraw)),
     include: (s) => filterOwner === 'all' || s.owner === filterOwner,
     icon: (s) => iconImg(settlementIcon(s, tribes)),
+    showIndex: false,
     summary: (s) => `${nationName(s.owner as number)} (${s.size}) [${s.x},${s.y}]`,
-    detailHead: (s) => recordHead(`${nationName(s.owner as number)} settlement`, settlementIcon(s, tribes), `level ${tribeLevel(s, tribes)} - size ${s.size} - ${s.x}, ${s.y}`),
+    detailHead: (s, i) => h('div', {},
+      recordHead(`${nationName(s.owner as number)} settlement`, settlementIcon(s, tribes), `level ${tribeLevel(s, tribes)} - size ${s.size} - ${s.x}, ${s.y}`),
+      section('Settlement',
+        h('div', { class: 'col-row' },
+          h('span', { class: 'col-label col-label--inline' }, 'ID'),
+          h('span', { class: 'col-chip' }, String(i)),
+          h('span', { class: 'col-label col-label--inline' }, 'Owner'),
+          h('span', { class: 'col-chip' }, nationName(s.owner as number)),
+          h('span', { class: 'col-label col-label--inline' }, 'At'),
+          h('span', { class: 'col-chip' }, `${s.x}, ${s.y}`),
+          h('span', { class: 'col-label col-label--inline' }, 'Size'),
+          h('span', { class: 'col-chip' }, String(s.size))))),
   });
 }
 

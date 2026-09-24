@@ -124,8 +124,16 @@
 .col-list-item{display:flex;align-items:center;gap:8px;text-align:left}
 .col-list-item .sav-icon{width:30px;height:30px;margin:-3px 0}
 .sav-list-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sav-list-index-hidden{display:none}
 .sav-record-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .sav-record-head h3{margin:0;font-size:18px;letter-spacing:0}
 .sav-record-head p{margin:2px 0 0}
 .sav-landmarks{display:flex;flex-direction:column;gap:8px}
 .sav-landmark{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:8px}
+.sav-resource-cell{gap:0}
+.sav-icon-input{display:inline-flex;align-items:center;position:relative}
+.sav-resource-prefix{
+  position:absolute;left:6px;z-index:1;width:22px;height:22px;
+  object-fit:contain;image-rendering:pixelated;pointer-events:none;
+}
+.sav-resource-input{padding-left:34px}

@@ -10,8 +10,8 @@ import {
   decodeTerrain, encodeTerrain, exploredBy, MAP1, MAP1_LABELS, setExploredBy,
   setSquareNation, squareNation, terrainColour, terrainName, TERRAIN_FULL,
 } from '../../../src/format/map.js';
-import { NATION } from '../../../src/format/enums.js';
-import { colonyIcon, mapIconImage, settlementIcon } from '../icons.js';
+import { NATION, PROFESSION, UNIT_TYPE } from '../../../src/format/enums.js';
+import { colonyIcon, mapIconImage, settlementIcon, unitIcon } from '../icons.js';
 import { fromB64, toB64 } from '../fields.js';
 import { clear, h, hex } from '../dom.js';
 import { store } from '../state.js';
@@ -33,7 +33,7 @@ export function mapPanel(): HTMLElement {
   let view: View = 'terrain';
   let exploredNation = (doc.globals as Record<string, number>).playerNation ?? 0;
   let sel: { x: number; y: number } | undefined;
-  let scale = 12;
+  let scale = 16;
 
   const canvas = h('canvas', { class: 'col-art sav-map-canvas' });
   const info = h('div', {});
@@ -87,6 +87,9 @@ export function mapPanel(): HTMLElement {
     for (const s of doc.settlements as Array<Record<string, unknown>>) {
       drawMapIcon(ctx, settlementIcon(s, doc.tribes as Array<Record<string, unknown>>), Number(s.x), Number(s.y), scale, draw);
     }
+    for (const u of doc.units as Array<Record<string, unknown>>) {
+      drawMapIcon(ctx, unitIcon(Number(u.type), Number(u.spec)), Number(u.x), Number(u.y), scale, draw);
+    }
 
     if (sel) {
       ctx.strokeStyle = '#ff4d6d';
@@ -111,13 +114,16 @@ export function mapPanel(): HTMLElement {
 
     const coloniesHere = (doc.colonies as Array<Record<string, unknown>>).filter((c) => Number(c.x) === x && Number(c.y) === y);
     const settlementsHere = (doc.settlements as Array<Record<string, unknown>>).filter((s) => Number(s.x) === x && Number(s.y) === y);
-    if (coloniesHere.length || settlementsHere.length) {
+    const unitsHere = (doc.units as Array<Record<string, unknown>>).filter((u) => Number(u.x) === x && Number(u.y) === y);
+    if (coloniesHere.length || settlementsHere.length || unitsHere.length) {
       info.appendChild(section('Landmarks',
         h('div', { class: 'sav-landmarks' },
           ...coloniesHere.map((c) => h('div', { class: 'sav-landmark' }, iconNode(colonyIcon(c)),
             h('span', {}, String(c.name || 'Colony')), h('span', { class: 'col-meta' }, `${NATION[Number(c.nation)] ?? 'nation'} - pop ${c.pop}`))),
           ...settlementsHere.map((s) => h('div', { class: 'sav-landmark' }, iconNode(settlementIcon(s, doc.tribes as Array<Record<string, unknown>>)),
             h('span', {}, `${NATION[Number(s.owner)] ?? 'Native'} settlement`), h('span', { class: 'col-meta' }, `level ${settlementLevel(s, doc.tribes as Array<Record<string, unknown>>)} - size ${s.size}`))),
+          ...unitsHere.map((u) => h('div', { class: 'sav-landmark' }, iconNode(unitIcon(Number(u.type), Number(u.spec))),
+            h('span', {}, unitName(u)), h('span', { class: 'col-meta' }, `${NATION[ownerOfUnit(u)] ?? 'owner'} - unit #${(doc.units as Array<Record<string, unknown>>).indexOf(u)}`))),
         )));
     }
 
@@ -207,7 +213,7 @@ export function mapPanel(): HTMLElement {
   nationSel.style.display = 'none';
 
   const zoom = h('input', {
-    type: 'range', class: 'col-range', min: 4, max: 20, step: 1, value: String(scale),
+    type: 'range', class: 'col-range', min: 8, max: 28, step: 1, value: String(scale),
     oninput: () => { scale = Number(zoom.value); draw(); },
   });
 
@@ -246,6 +252,17 @@ function settlementLevel(settlement: Record<string, unknown>, tribes: Array<Reco
   const tribe = Number.isFinite(owner) ? tribes[Math.trunc(owner) - 4] : undefined;
   const level = Number(tribe?.level);
   return Number.isFinite(level) ? Math.max(0, Math.min(3, Math.trunc(level))) : '?';
+}
+
+function ownerOfUnit(unit: Record<string, unknown>): number {
+  return Number(unit.flags) & 0x0f;
+}
+
+function unitName(unit: Record<string, unknown>): string {
+  const type = Number(unit.type);
+  const spec = Number(unit.spec);
+  if (type === 0 && spec in PROFESSION) return PROFESSION[spec]!;
+  return UNIT_TYPE[type] ?? `unit ${type}`;
 }
 
 function drawMapIcon(
